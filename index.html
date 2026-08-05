@@ -4,11 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Nitin Lodha | AI Engineer and Builder</title>
-  <meta name="description" content="Nitin Lodha is an AI Engineer and builder working at Postman, studying at the University of Pennsylvania. He builds AI agents, full stack products, and ships research." />
+  <meta name="description" content="Nitin Lodha is an AI Engineer and builder at Postman, studying at the University of Pennsylvania. He builds AI agents, full stack products, and published research." />
   <meta name="author" content="Nitin Lodha" />
   <meta name="theme-color" content="#08080c" />
 
-  <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Nitin Lodha | AI Engineer and Builder" />
   <meta property="og:description" content="AI Engineer at Postman. Builder of AI agents, full stack products, and research." />
@@ -21,12 +20,21 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%237c6cff'/%3E%3Ctext x='50' y='68' font-family='monospace' font-size='52' font-weight='700' fill='white' text-anchor='middle'%3ENL%3C/text%3E%3C/svg%3E" />
 </head>
 <body>
+  <!-- Intro preloader -->
+  <div class="intro" id="intro" aria-hidden="true">
+    <div class="intro-inner">
+      <span class="intro-mark">NL</span>
+      <span class="intro-name">Nitin Lodha</span>
+      <span class="intro-bar"><span></span></span>
+    </div>
+  </div>
+
   <!-- Background layers -->
   <canvas class="bg-canvas" id="bgCanvas"></canvas>
   <div class="bg-orbs"><span class="orb o1"></span><span class="orb o2"></span><span class="orb o3"></span></div>
   <div class="grain"></div>
+  <div class="spotlight" id="spotlight"></div>
 
-  <!-- Scroll + cursor -->
   <div class="scroll-progress" id="scrollProgress"></div>
   <div class="cursor-dot" id="cursorDot"></div>
   <div class="cursor-ring" id="cursorRing"></div>
@@ -56,7 +64,6 @@
     </div>
   </nav>
 
-  <!-- Mobile menu -->
   <div class="mobile-menu" id="mobileMenu">
     <a href="#about"><span>01</span>About</a>
     <a href="#work"><span>02</span>Work</a>
@@ -78,9 +85,9 @@
       <div class="hero-grid">
         <div class="hero-copy">
           <span class="hero-status reveal"><span class="pulse"></span> AI Engineering Intern at Postman</span>
-          <h1 class="reveal d1">Nitin <span class="grad">Lodha</span></h1>
+          <h1 class="hero-title split-chars">Nitin Lodha</h1>
           <div class="hero-role reveal d2">I build <span class="type" id="typed"></span><span class="caret">_</span></div>
-          <p class="hero-desc reveal d3">Engineer working across AI agents, full stack products, and machine learning. I turn hard problems into things people can actually use, from LLM driven pipelines to published research.</p>
+          <p class="hero-desc reveal d3">Engineer working across AI agents, full stack products, and machine learning. I turn hard, ambiguous problems into things people can actually use, from LLM driven agents to published research.</p>
           <div class="hero-cta reveal d4">
             <a href="#ventures" class="btn btn-primary" data-cursor data-magnetic>
               View my work
@@ -115,7 +122,7 @@
           </div>
           <div class="float-card fc-2" data-float>
             <span class="fc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
-            <div><b>10 Papers</b><small>published research</small></div>
+            <div><b>10+ Papers</b><small>published research</small></div>
           </div>
         </div>
       </div>
@@ -125,57 +132,58 @@
     <!-- Marquee -->
     <div class="marquee">
       <div class="marquee-track">
-        <span>AI Agents</span><span>Machine Learning</span><span>Full Stack</span><span>Computer Vision</span><span>Distributed Systems</span><span>LLM Pipelines</span><span>Research</span>
-        <span>AI Agents</span><span>Machine Learning</span><span>Full Stack</span><span>Computer Vision</span><span>Distributed Systems</span><span>LLM Pipelines</span><span>Research</span>
+        <span>AI Agents</span><span>LLM Pipelines</span><span>RAG</span><span>Multimodal AI</span><span>Full Stack</span><span>Computer Vision</span><span>Distributed Systems</span><span>Research</span>
+        <span>AI Agents</span><span>LLM Pipelines</span><span>RAG</span><span>Multimodal AI</span><span>Full Stack</span><span>Computer Vision</span><span>Distributed Systems</span><span>Research</span>
       </div>
     </div>
 
-    <!-- About -->
+    <!-- About (bento, single photo lives in the hero) -->
     <section id="about">
       <div class="container">
         <div class="section-head reveal">
           <span class="eyebrow">01 / About</span>
-          <h2 class="section-title">A versatile engineer<br />with a <span class="grad">builder's mindset</span></h2>
+          <h2 class="section-title split-words">A versatile engineer with a <span class="grad">builder's mindset</span></h2>
         </div>
-        <div class="about-grid">
-          <div class="about-photo reveal-scale" data-tilt>
-            <img src="assets/img/nitin_hero.jpg" alt="Nitin Lodha" />
-            <span class="tag">Philadelphia and Cupertino</span>
+        <div class="bento">
+          <div class="bento-item b-bio reveal" data-tilt>
+            <p>I work across software development, machine learning, full stack engineering, and distributed systems. Right now I am an <strong>AI Engineering Intern at Postman</strong> in Cupertino, building LLM driven agents, deploying production agents, and shipping tools that remove manual work from real workflows.</p>
+            <p>Before Postman I spent two years at <strong>Ericsson R&amp;D</strong> delivering more than 100 features for 5G revenue management, plus internships at Fiserv and Samsung R&amp;D. Alongside industry work I have published <strong>10+ research papers</strong> across IEEE, AIP, and IGI. I like taking an ambiguous, hard problem and turning it into something people can actually use.</p>
           </div>
-          <div class="about-text">
-            <p class="reveal">I work across software development, machine learning, full stack engineering, and distributed systems. Right now I am an <strong>AI Engineering Intern at Postman</strong> in Cupertino, building LLM driven agents, deploying production agents, and shipping tools that remove manual work from real workflows.</p>
-            <p class="reveal d1">Before Postman I spent two years at <strong>Ericsson R&amp;D</strong> delivering more than 100 features for 5G revenue management, plus internships at Fiserv and Samsung R&amp;D. Alongside industry work I have published <strong>10 research papers</strong> across IEEE, AIP, and IGI on machine learning, computer vision, and healthcare systems.</p>
-            <p class="reveal d2">I am currently pursuing my Master of Science in Engineering in Computer and Information Science at the <strong>University of Pennsylvania</strong>. I like taking an ambiguous, hard problem and turning it into something people can actually use.</p>
-            <div class="about-highlight reveal d3">
-              <span class="ah-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
-              <div><b>Currently building</b> autonomous AI agents and the guardrails that make them safe to run in production.</div>
-            </div>
-            <div class="stats">
-              <div class="stat reveal"><div class="num" data-count="10">10</div><div class="label">Research papers published</div></div>
-              <div class="stat reveal d1"><div class="num" data-count="4">4</div><div class="label">Companies and labs</div></div>
-              <div class="stat reveal d2"><div class="num" data-count="100" data-suffix="+">100+</div><div class="label">Features shipped at Ericsson</div></div>
-              <div class="stat reveal d3"><div class="num" data-count="3">3</div><div class="label">AI ventures in build</div></div>
-            </div>
+          <div class="bento-item b-now reveal d1" data-tilt>
+            <span class="bento-ico"><span class="pulse"></span></span>
+            <div class="bento-k">Currently</div>
+            <div class="bento-v">AI Engineering Intern at Postman, Cupertino</div>
+          </div>
+          <div class="bento-item b-build reveal d1" data-tilt>
+            <span class="bento-ico g"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
+            <div class="bento-k">Building</div>
+            <div class="bento-v">Autonomous AI agents and the guardrails that make them safe in production</div>
+          </div>
+          <div class="bento-item b-stat reveal" data-tilt><div class="num" data-count="10" data-suffix="+">10+</div><div class="label">Research papers</div></div>
+          <div class="bento-item b-stat reveal d1" data-tilt><div class="num" data-count="4">4</div><div class="label">Companies and labs</div></div>
+          <div class="bento-item b-stat reveal d2" data-tilt><div class="num" data-count="100" data-suffix="+">100+</div><div class="label">Features shipped</div></div>
+          <div class="bento-item b-stat reveal d3" data-tilt><div class="num" data-count="3">3</div><div class="label">AI ventures in build</div></div>
+          <div class="bento-item b-loc reveal d2" data-tilt>
+            <span class="bento-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+            <div class="bento-k">Based in</div>
+            <div class="bento-v">Philadelphia, PA and Cupertino, CA</div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Work / Experience -->
+    <!-- Work -->
     <section id="work">
       <div class="container">
         <div class="section-head reveal">
           <span class="eyebrow">02 / Experience</span>
-          <h2 class="section-title">Where I have <span class="grad">built things</span></h2>
+          <h2 class="section-title split-words">Where I have <span class="grad">built things</span></h2>
         </div>
         <div class="timeline">
           <div class="tl-item reveal">
             <span class="tl-dot"></span>
             <div class="tl-card" data-tilt>
-              <div class="tl-top">
-                <div class="tl-role">AI Engineering Intern</div>
-                <div class="tl-date">May 2026 to Present</div>
-              </div>
+              <div class="tl-top"><div class="tl-role">AI Engineering Intern</div><div class="tl-date">May 2026 to Present</div></div>
               <div class="tl-company">Postman <span class="place">/ Cupertino, CA</span></div>
               <ul>
                 <li>Building automated recruiting pipelines that streamline candidate sourcing, screening, and outreach with LLM driven agents, cutting manual effort across the hiring workflow.</li>
@@ -185,14 +193,10 @@
               <div class="tl-tags"><span class="chip">LLM Agents</span><span class="chip">Python</span><span class="chip">Astro AI</span><span class="chip">Postman Flows</span></div>
             </div>
           </div>
-
           <div class="tl-item reveal">
             <span class="tl-dot"></span>
             <div class="tl-card" data-tilt>
-              <div class="tl-top">
-                <div class="tl-role">Software Engineer</div>
-                <div class="tl-date">Jan 2023 to July 2025</div>
-              </div>
+              <div class="tl-top"><div class="tl-role">Software Engineer</div><div class="tl-date">Jan 2023 to July 2025</div></div>
               <div class="tl-company">Ericsson R&amp;D <span class="place">/ Chennai, India</span></div>
               <ul>
                 <li>Collaborated with the revenue management team to deliver more than 100 new features using Java and Angular, improving product functionality and client satisfaction.</li>
@@ -203,30 +207,22 @@
               <div class="tl-tags"><span class="chip">Java</span><span class="chip">Angular</span><span class="chip">Python</span><span class="chip">Machine Learning</span></div>
             </div>
           </div>
-
           <div class="tl-item reveal">
             <span class="tl-dot"></span>
             <div class="tl-card" data-tilt>
-              <div class="tl-top">
-                <div class="tl-role">Research Intern</div>
-                <div class="tl-date">2021 to 2022</div>
-              </div>
+              <div class="tl-top"><div class="tl-role">Research Intern</div><div class="tl-date">2021 to 2022</div></div>
               <div class="tl-company">Samsung R&amp;D (PRISM) <span class="place">/ India</span></div>
               <ul>
                 <li>Researched Indian points of interest utterances and dataset expansion for natural language understanding.</li>
-                <li>Built a machine learning model for auto natural utterance creation that outperformed BERT and T5 on diversity of generated utterances.</li>
+                <li>Built a model for auto natural utterance creation that outperformed BERT and T5 on diversity of generated utterances.</li>
               </ul>
               <div class="tl-tags"><span class="chip">NLP</span><span class="chip">BERT</span><span class="chip">Transformers</span></div>
             </div>
           </div>
-
           <div class="tl-item reveal">
             <span class="tl-dot"></span>
             <div class="tl-card" data-tilt>
-              <div class="tl-top">
-                <div class="tl-role">Software Engineer Intern</div>
-                <div class="tl-date">July 2022 to Sept 2022</div>
-              </div>
+              <div class="tl-top"><div class="tl-role">Software Engineer Intern</div><div class="tl-date">July 2022 to Sept 2022</div></div>
               <div class="tl-company">Fiserv <span class="place">/ Chennai, India</span></div>
               <ul>
                 <li>Used Splunk to analyze and categorize error and warning logs into a unified, filterable dashboard by host, time, log count, and region.</li>
@@ -239,16 +235,15 @@
       </div>
     </section>
 
-    <!-- Ventures / Entrepreneurship -->
+    <!-- Ventures -->
     <section id="ventures">
       <div class="container">
         <div class="section-head reveal">
           <span class="eyebrow">03 / Entrepreneurship</span>
-          <h2 class="section-title">Ventures I am <span class="grad">building</span></h2>
-          <p class="section-sub">Products I design and build from scratch, mostly at the frontier of AI agents and how people hire. These are the things I stay up late for.</p>
+          <h2 class="section-title split-words">Ventures I am <span class="grad">building</span></h2>
+          <p class="section-sub">Products I design and build from scratch, at the frontier of AI agents and how people hire. These are the things I stay up late for.</p>
         </div>
         <div class="ventures-grid">
-
           <article class="venture reveal" data-tilt>
             <div class="venture-head">
               <span class="venture-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></span>
@@ -256,112 +251,130 @@
             </div>
             <h3>Corda AI</h3>
             <div class="tagline">Governance for enterprise AI agents</div>
-            <p>A control plane that sits between an AI agent and the tools it calls. It answers one question in about a tenth of a millisecond, allow, deny, or hold for a human, then writes a tamper evident record of every decision.</p>
+            <p>A control plane that sits between an AI agent and the tools it calls. It answers one question in about a tenth of a millisecond, allow, deny, or hold for a human, then writes a hash chained, tamper evident record of every decision and routes the hard calls to a person.</p>
             <div class="venture-foot">
-              <div class="venture-tags"><span class="chip">Agents</span><span class="chip">Policy</span><span class="chip">Audit</span></div>
+              <div class="venture-tags"><span class="chip">TypeScript</span><span class="chip">Policy</span><span class="chip">Audit</span></div>
               <a href="https://github.com/NitinLodha2812" target="_blank" rel="noopener" class="venture-link" data-cursor>Details <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
             </div>
           </article>
 
           <article class="venture reveal d1" data-tilt>
             <div class="venture-head">
-              <span class="venture-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
-              <span class="venture-status oss">Open source</span>
-            </div>
-            <h3>ProofStack</h3>
-            <div class="tagline">Proof based hiring</div>
-            <p>Replaces the resume with verified proof. Employers define exactly what evidence they accept for a role, candidates submit real work artifacts, and AI produces a ProofCard, a pass or fail verdict anchored to actual evidence.</p>
-            <div class="venture-foot">
-              <div class="venture-tags"><span class="chip">Flask</span><span class="chip">LLM</span><span class="chip">Hiring</span></div>
-              <a href="https://github.com/NitinLodha2812/ProofStack" target="_blank" rel="noopener" class="venture-link" data-cursor>View source <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
-            </div>
-          </article>
-
-          <article class="venture reveal d2" data-tilt>
-            <div class="venture-head">
               <span class="venture-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg></span>
               <span class="venture-status live">Building</span>
             </div>
             <h3>Neural AI</h3>
             <div class="tagline">Intelligent recruitment platform</div>
-            <p>An AI recruitment engine that parses job requirements, scores candidates against customizable priorities, and generates LinkedIn x-ray searches. Integrates with the Manatal ATS and exports to CSV, PDF, and JSON.</p>
+            <p>An AI recruitment engine that parses job requirements, scores candidates against customizable priorities, and generates LinkedIn x-ray searches. It integrates with the Manatal ATS and exports to CSV, PDF, and JSON.</p>
             <div class="venture-foot">
               <div class="venture-tags"><span class="chip">Gemini</span><span class="chip">Scoring</span><span class="chip">ATS</span></div>
               <a href="https://github.com/NitinLodha2812" target="_blank" rel="noopener" class="venture-link" data-cursor>Details <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
             </div>
           </article>
 
-          <article class="venture reveal d3" data-tilt>
+          <article class="venture reveal d2" data-tilt>
             <div class="venture-head">
               <span class="venture-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18M3 12h18M3 17h18"/><circle cx="7" cy="7" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="17" cy="17" r="1" fill="currentColor"/></svg></span>
               <span class="venture-status oss">Adapter kit</span>
             </div>
             <h3>Portage</h3>
             <div class="tagline">One app description, any backend</div>
-            <p>You describe an app once as a Postman Flow, and Portage reads it, works out what it needs, generates the deploy artifacts, and hands off to the backend of your choice. Astro today, with n8n and Vercel next, and a way to write your own adapter.</p>
+            <p>You describe an app once as a Postman Flow, and Portage reads it, works out what it needs, generates the deploy artifacts, and hands off to the backend of your choice. Astro today, with n8n and Vercel next, and a way to write your own adapter. Zero dependencies, no build step.</p>
             <div class="venture-foot">
-              <div class="venture-tags"><span class="chip">TypeScript</span><span class="chip">Node</span><span class="chip">Deploy</span></div>
+              <div class="venture-tags"><span class="chip">TypeScript</span><span class="chip">Node 24</span><span class="chip">Deploy</span></div>
               <a href="https://github.com/NitinLodha2812" target="_blank" rel="noopener" class="venture-link" data-cursor>Details <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
             </div>
           </article>
-
         </div>
       </div>
     </section>
 
-    <!-- Projects -->
+    <!-- Projects: featured + grid -->
     <section id="projects">
       <div class="container">
         <div class="section-head reveal">
           <span class="eyebrow">04 / Selected Projects</span>
-          <h2 class="section-title">Things I have <span class="grad">shipped and studied</span></h2>
+          <h2 class="section-title split-words">Work that shows <span class="grad">depth and range</span></h2>
+          <p class="section-sub">A mix of AI agents, multimodal generative systems, biomedical signal processing, and low level systems. From research papers to shipping apps.</p>
         </div>
+
+        <div class="featured">
+          <article class="feat-card reveal" data-tilt>
+            <span class="feat-index">01</span>
+            <div class="feat-body">
+              <div class="feat-head">
+                <span class="project-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M2 14h2M20 14h2M15 13v2M9 13v2"/></svg></span>
+                <span class="venture-status live">Latest</span>
+              </div>
+              <h3>Recruiter Agent</h3>
+              <div class="tagline">Recruiting copilot, chat in, ranked shortlist out</div>
+              <p>An agent that ranks a role's applicants or sources across an entire candidate database. It embeds every candidate into a persistent Qdrant index, retrieves the top matches by similarity, then deep scores them with Claude using scoring weights that adapt per job description. Email and scheduling happen in the same window.</p>
+              <div class="project-tags"><span class="chip">Claude</span><span class="chip">FastAPI</span><span class="chip">Qdrant</span><span class="chip">RAG</span><span class="chip">Docker</span></div>
+            </div>
+            <a href="https://github.com/NitinLodha2812" target="_blank" rel="noopener" class="feat-link" aria-label="Recruiter Agent details" data-cursor><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+          </article>
+
+          <article class="feat-card reveal d1" data-tilt>
+            <span class="feat-index">02</span>
+            <div class="feat-body">
+              <div class="feat-head">
+                <span class="project-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg></span>
+                <span class="venture-status oss">Open source</span>
+              </div>
+              <h3>Serial LVAD Study</h3>
+              <div class="tagline">Cerebral blood flow analysis for heart pump patients</div>
+              <p>A clinical web app that analyzes cerebral blood flow physiology in LVAD patients. From raw signals sampled at 125 Hz it computes autoregulation (CA and Mx), cerebrovascular reactivity (CVR), and per beat pulsatility, separating heart driven from pump driven beats. A full Python and Flask port of a MATLAB research tool, with Excel and JSON export.</p>
+              <div class="project-tags"><span class="chip">Python</span><span class="chip">Flask</span><span class="chip">Signal Processing</span><span class="chip">Biomedical</span></div>
+            </div>
+            <a href="https://github.com/NitinLodha2812/Serial-LVAD" target="_blank" rel="noopener" class="feat-link" aria-label="Serial LVAD source" data-cursor><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+          </article>
+        </div>
+
         <div class="projects-grid">
+          <article class="project reveal" data-tilt>
+            <span class="project-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg></span>
+            <h3>Cinematic <a href="https://github.com/NitinLodha2812/CIS5810-Cinematic" target="_blank" rel="noopener" aria-label="View source" data-cursor><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></a></h3>
+            <p>A multimodal pipeline that drops you into a movie scene. It captions your photo, writes a scene with an LLM, generates the frame with Stable Diffusion, and face swaps you in, all behind a Gradio interface. Built for Penn CIS 5810.</p>
+            <div class="project-tags"><span class="chip">PyTorch</span><span class="chip">Diffusers</span><span class="chip">Gradio</span></div>
+          </article>
+
+          <article class="project reveal d1" data-tilt>
+            <span class="project-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 10h.01M12 10h.01M16 10h.01M9 16c.8.5 1.9.8 3 .8s2.2-.3 3-.8"/><rect x="3" y="4" width="18" height="14" rx="3"/><path d="M12 18v3"/></svg></span>
+            <h3>AI HR Chatbot <a href="https://github.com/NitinLodha2812" target="_blank" rel="noopener" aria-label="Details" data-cursor><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></a></h3>
+            <p>A Streamlit chatbot that answers free form HR questions by pulling live Workday data and applying company policy. A Claude agent selects read only tools, queries over OAuth2 REST, and lets you switch models from the sidebar.</p>
+            <div class="project-tags"><span class="chip">Claude</span><span class="chip">Streamlit</span><span class="chip">Tool Use</span></div>
+          </article>
+
+          <article class="project reveal d2" data-tilt>
+            <span class="project-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+            <h3>ProofStack <a href="https://github.com/NitinLodha2812/ProofStack" target="_blank" rel="noopener" aria-label="View source" data-cursor><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></a></h3>
+            <p>Proof based hiring. Employers define exactly what evidence they accept for a role, candidates submit real work artifacts, and AI produces a ProofCard, a pass or fail verdict anchored to actual evidence rather than a resume.</p>
+            <div class="project-tags"><span class="chip">Flask</span><span class="chip">LLM</span><span class="chip">Hiring</span></div>
+          </article>
 
           <article class="project reveal" data-tilt>
             <span class="project-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-7l-2-2H5a2 2 0 0 0-2 2z"/></svg></span>
             <h3>Hash Tree File System <a href="https://github.com/NitinLodha2812/N-ary-tree-file-system" target="_blank" rel="noopener" aria-label="View source" data-cursor><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></a></h3>
-            <p>A file system built on N-ary trees and hashing for secure, faster backups, with a JSON based hash tree for change detection. Achieved more than 100 percent improvement over traditional systems.</p>
-            <div class="project-tags"><span class="chip">C++</span><span class="chip">Python</span><span class="chip">OpenMP</span></div>
+            <p>A file system built on N-ary trees and hashing for secure, faster backups, with a JSON based hash tree for change detection. Parallelized with OpenMP, it achieved more than 100 percent improvement over traditional systems.</p>
+            <div class="project-tags"><span class="chip">C++</span><span class="chip">OpenMP</span><span class="chip">Systems</span></div>
           </article>
 
           <article class="project reveal d1" data-tilt>
-            <span class="project-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 3-4 3 3 4-6"/></svg></span>
-            <h3>Serial LVAD Study <a href="https://github.com/NitinLodha2812/Serial-LVAD" target="_blank" rel="noopener" aria-label="View source" data-cursor><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></a></h3>
-            <p>A web app that analyzes cerebral blood flow physiology in LVAD patients, computing clinical autoregulation and reactivity metrics from raw 125 Hz recordings. A full Python and Flask port of a MATLAB research tool.</p>
-            <div class="project-tags"><span class="chip">Python</span><span class="chip">Flask</span><span class="chip">Signals</span></div>
-          </article>
-
-          <article class="project reveal d2" data-tilt>
-            <span class="project-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg></span>
+            <span class="project-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/><circle cx="12" cy="12" r="3"/></svg></span>
             <h3>Context Image Retrieval</h3>
             <p class="venue">Published in AIP Conf. Proc. 2916 (2023)</p>
             <p>A hybrid feature extraction pipeline combining DWT, PCA, GLCM, and OKE on the BRATS 2017 dataset, improving medical image retrieval accuracy by up to 28 percent over baseline models.</p>
             <div class="project-tags"><span class="chip">Python</span><span class="chip">R</span><span class="chip">Computer Vision</span></div>
           </article>
 
-          <article class="project reveal" data-tilt>
+          <article class="project reveal d2" data-tilt>
             <span class="project-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/></svg></span>
             <h3>Diabetic Retinopathy Detection <a href="https://github.com/NitinLodha2812/DR_Detection" target="_blank" rel="noopener" aria-label="View source" data-cursor><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></a></h3>
-            <p>A deep learning model to detect diabetic retinopathy from retinal scans using CNNs and an Inception v3 backbone, wrapped in a Flask frontend for easy use by clinicians.</p>
+            <p>A deep learning model that grades diabetic retinopathy from retinal scans using CNNs and an Inception v3 backbone, wrapped in a Flask frontend for easy use by clinicians.</p>
             <div class="project-tags"><span class="chip">CNN</span><span class="chip">Inception v3</span><span class="chip">Flask</span></div>
           </article>
-
-          <article class="project reveal d1" data-tilt>
-            <span class="project-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/><circle cx="12" cy="12" r="3"/></svg></span>
-            <h3>Traffic Sign Classification <a href="https://github.com/NitinLodha2812/traffic-sign-classification" target="_blank" rel="noopener" aria-label="View source" data-cursor><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></a></h3>
-            <p>A traffic sign classifier combining CNN image features with LSTM based question embeddings, reaching 75 percent accuracy on the German traffic sign dataset using the VQA evaluation metric.</p>
-            <div class="project-tags"><span class="chip">CNN</span><span class="chip">LSTM</span><span class="chip">Keras</span></div>
-          </article>
-
-          <article class="project reveal d2" data-tilt>
-            <span class="project-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>
-            <h3>OS Benchmarking System <a href="https://github.com/NitinLodha2812/OS_Benchmarking_System" target="_blank" rel="noopener" aria-label="View source" data-cursor><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></a></h3>
-            <p>A user and kernel level benchmarking system that measures machine performance precisely, built with C++, kernel access, and shell scripting for reliable, repeatable results.</p>
-            <div class="project-tags"><span class="chip">C++</span><span class="chip">Shell</span><span class="chip">Kernel</span></div>
-          </article>
-
         </div>
+
         <div class="projects-more reveal">
           <a href="https://github.com/NitinLodha2812" target="_blank" rel="noopener" class="btn btn-ghost" data-cursor data-magnetic>
             See everything on GitHub
@@ -376,31 +389,31 @@
       <div class="container">
         <div class="section-head reveal">
           <span class="eyebrow">05 / Skills</span>
-          <h2 class="section-title">The <span class="grad">toolbox</span></h2>
+          <h2 class="section-title split-words">The <span class="grad">toolbox</span></h2>
         </div>
         <div class="skills-grid">
           <div class="skill-group reveal" data-tilt>
             <h3><span class="sg-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg></span>Languages</h3>
             <div class="skill-chips">
-              <span class="skill-chip">C / C++</span><span class="skill-chip">Java</span><span class="skill-chip">Python</span><span class="skill-chip">JavaScript</span><span class="skill-chip">TypeScript</span><span class="skill-chip">PHP</span><span class="skill-chip">R</span><span class="skill-chip">SQL</span><span class="skill-chip">Shell</span>
+              <span class="skill-chip">Python</span><span class="skill-chip">C / C++</span><span class="skill-chip">Java</span><span class="skill-chip">TypeScript</span><span class="skill-chip">JavaScript</span><span class="skill-chip">R</span><span class="skill-chip">SQL</span><span class="skill-chip">Shell</span>
             </div>
           </div>
           <div class="skill-group reveal d1" data-tilt>
             <h3><span class="sg-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M12 2a10 10 0 0 0 0 20M12 2a10 10 0 0 1 0 20M2 12h20"/></svg></span>AI and Machine Learning</h3>
             <div class="skill-chips">
-              <span class="skill-chip">PyTorch</span><span class="skill-chip">TensorFlow</span><span class="skill-chip">Keras</span><span class="skill-chip">Scikit-learn</span><span class="skill-chip">LLMs</span><span class="skill-chip">CNN</span><span class="skill-chip">RNN</span><span class="skill-chip">NLP</span><span class="skill-chip">Computer Vision</span><span class="skill-chip">Reinforcement Learning</span>
+              <span class="skill-chip">LLMs</span><span class="skill-chip">AI Agents</span><span class="skill-chip">RAG</span><span class="skill-chip">Vector Search</span><span class="skill-chip">Diffusion Models</span><span class="skill-chip">PyTorch</span><span class="skill-chip">TensorFlow</span><span class="skill-chip">CNN</span><span class="skill-chip">RNN</span><span class="skill-chip">NLP</span><span class="skill-chip">Computer Vision</span><span class="skill-chip">Reinforcement Learning</span>
             </div>
           </div>
           <div class="skill-group reveal d1" data-tilt>
             <h3><span class="sg-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>Web and Full Stack</h3>
             <div class="skill-chips">
-              <span class="skill-chip">React</span><span class="skill-chip">Node.js</span><span class="skill-chip">Flask</span><span class="skill-chip">HTML</span><span class="skill-chip">CSS</span><span class="skill-chip">Bootstrap</span><span class="skill-chip">MongoDB</span><span class="skill-chip">Firebase</span><span class="skill-chip">Flutter</span>
+              <span class="skill-chip">React</span><span class="skill-chip">Node.js</span><span class="skill-chip">FastAPI</span><span class="skill-chip">Flask</span><span class="skill-chip">Streamlit</span><span class="skill-chip">MongoDB</span><span class="skill-chip">Firebase</span><span class="skill-chip">Flutter</span>
             </div>
           </div>
           <div class="skill-group reveal d2" data-tilt>
             <h3><span class="sg-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 0 0 0-9h-1.3A7 7 0 1 0 4 15.9"/><path d="M12 12v9M8 17l4 4 4-4"/></svg></span>Data, Cloud and DevOps</h3>
             <div class="skill-chips">
-              <span class="skill-chip">NumPy</span><span class="skill-chip">Pandas</span><span class="skill-chip">Matplotlib</span><span class="skill-chip">AWS</span><span class="skill-chip">Docker</span><span class="skill-chip">Kubernetes</span><span class="skill-chip">Jenkins</span><span class="skill-chip">Git</span><span class="skill-chip">Linux</span><span class="skill-chip">CI / CD</span><span class="skill-chip">Microservices</span>
+              <span class="skill-chip">NumPy</span><span class="skill-chip">Pandas</span><span class="skill-chip">Qdrant</span><span class="skill-chip">AWS</span><span class="skill-chip">Docker</span><span class="skill-chip">Kubernetes</span><span class="skill-chip">Jenkins</span><span class="skill-chip">Git</span><span class="skill-chip">Linux</span><span class="skill-chip">CI / CD</span><span class="skill-chip">Microservices</span>
             </div>
           </div>
         </div>
@@ -412,59 +425,65 @@
       <div class="container">
         <div class="section-head reveal">
           <span class="eyebrow">06 / Research</span>
-          <h2 class="section-title">Published <span class="grad">research</span></h2>
-          <p class="section-sub">Ten peer reviewed papers across machine learning, computer vision, healthcare systems, and security.</p>
+          <h2 class="section-title split-words">Published <span class="grad">research</span></h2>
+          <p class="section-sub">More than 10 peer reviewed papers across machine learning, computer vision, healthcare systems, security, and smart cities.</p>
         </div>
         <div class="research-list">
           <a class="pub reveal" href="https://pubs.aip.org/aip/acp/article-abstract/2916/1/090005/2926311/Building-novel-approach-for-context-based-image" target="_blank" rel="noopener" data-cursor>
-            <span class="pub-venue aip">AIP</span>
+            <span class="pub-venue aip">AIP</span><span class="pub-year">2023</span>
             <span class="pub-title">Building a novel approach for context based image retrieval in healthcare</span>
             <span class="pub-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></span>
           </a>
           <a class="pub reveal" href="https://pubs.aip.org/aip/acp/article-abstract/2916/1/150002/2926328/Simulation-of-content-based-on-image-retrieval-for" target="_blank" rel="noopener" data-cursor>
-            <span class="pub-venue aip">AIP</span>
+            <span class="pub-venue aip">AIP</span><span class="pub-year">2023</span>
             <span class="pub-title">Simulation of content based image retrieval for financial institutions</span>
             <span class="pub-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></span>
           </a>
           <a class="pub reveal" href="https://ieeexplore.ieee.org/document/9785275" target="_blank" rel="noopener" data-cursor>
-            <span class="pub-venue ieee">IEEE</span>
+            <span class="pub-venue ieee">IEEE</span><span class="pub-year">2022</span>
             <span class="pub-title">Integration of optimization techniques to improve performance of a machine learning system</span>
             <span class="pub-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></span>
           </a>
           <a class="pub reveal" href="https://ieeexplore.ieee.org/document/9785107" target="_blank" rel="noopener" data-cursor>
-            <span class="pub-venue ieee">IEEE</span>
+            <span class="pub-venue ieee">IEEE</span><span class="pub-year">2022</span>
             <span class="pub-title">Role of cloud security in big data processing for healthcare systems</span>
             <span class="pub-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></span>
           </a>
           <a class="pub reveal" href="https://ieeexplore.ieee.org/document/9758234" target="_blank" rel="noopener" data-cursor>
-            <span class="pub-venue ieee">IEEE</span>
+            <span class="pub-venue ieee">IEEE</span><span class="pub-year">2022</span>
             <span class="pub-title">Investigating the role of artificial intelligence in building smart contracts on blockchain</span>
             <span class="pub-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></span>
           </a>
           <a class="pub reveal" href="https://ieeexplore.ieee.org/document/9785287" target="_blank" rel="noopener" data-cursor>
-            <span class="pub-venue ieee">IEEE</span>
+            <span class="pub-venue ieee">IEEE</span><span class="pub-year">2022</span>
             <span class="pub-title">Early diagnosis of autism using machine learning techniques and gated recurrent units</span>
             <span class="pub-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></span>
           </a>
-          <a class="pub reveal" href="https://ieeexplore.ieee.org/document/9678440" target="_blank" rel="noopener" data-cursor>
-            <span class="pub-venue ieee">IEEE</span>
-            <span class="pub-title">An effective model for detecting severeness of disease in paddy leaf</span>
-            <span class="pub-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></span>
-          </a>
           <a class="pub reveal" href="https://ieeexplore.ieee.org/document/10074221" target="_blank" rel="noopener" data-cursor>
-            <span class="pub-venue ieee">IEEE</span>
+            <span class="pub-venue ieee">IEEE</span><span class="pub-year">2023</span>
             <span class="pub-title">Covid-19 crowd detection and alert system using image processing</span>
             <span class="pub-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></span>
           </a>
+          <a class="pub reveal" href="https://ieeexplore.ieee.org/document/9678440" target="_blank" rel="noopener" data-cursor>
+            <span class="pub-venue ieee">IEEE</span><span class="pub-year">2021</span>
+            <span class="pub-title">An effective model for detecting severeness of disease in paddy leaf</span>
+            <span class="pub-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></span>
+          </a>
           <a class="pub reveal" href="https://www.igi-global.com/chapter/location-based-analysis-of-supply-chain-management-systems-in-smart-cities/318825" target="_blank" rel="noopener" data-cursor>
-            <span class="pub-venue igi">IGI</span>
+            <span class="pub-venue igi">IGI</span><span class="pub-year">2023</span>
             <span class="pub-title">Location based analysis of supply chain management systems in smart cities</span>
             <span class="pub-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></span>
           </a>
           <a class="pub reveal" href="https://pubs.aip.org/aip/acp/article-abstract/2705/1/020005/2897008/Assessing-factors-critical-to-intelligent-plant" target="_blank" rel="noopener" data-cursor>
-            <span class="pub-venue aip">AIP</span>
+            <span class="pub-venue aip">AIP</span><span class="pub-year">2023</span>
             <span class="pub-title">Assessing factors critical to intelligent plant healthcare technology</span>
             <span class="pub-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></span>
+          </a>
+        </div>
+        <div class="projects-more reveal">
+          <a href="https://scholar.google.com/citations?user=LnlYBn0AAAAJ&hl=en" target="_blank" rel="noopener" class="btn btn-ghost" data-cursor data-magnetic>
+            View all publications on Google Scholar
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg>
           </a>
         </div>
       </div>
@@ -475,7 +494,7 @@
       <div class="container">
         <div class="section-head reveal">
           <span class="eyebrow">07 / Education</span>
-          <h2 class="section-title">Where I <span class="grad">learned</span></h2>
+          <h2 class="section-title split-words">Where I <span class="grad">learned</span></h2>
         </div>
         <div class="edu-grid">
           <div class="edu-card reveal" data-tilt>
@@ -518,7 +537,6 @@
     </section>
   </main>
 
-  <!-- Footer -->
   <footer class="footer">
     <div class="container footer-inner">
       <a href="#home" class="brand" data-cursor><span class="brand-mark">NL</span><span>Nitin Lodha</span></a>
