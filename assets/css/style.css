@@ -594,3 +594,92 @@ html[data-theme="light"] .theme-toggle .moon { display: none; }
   .orb { animation: none !important; }
   .split-words.split-ready .s-inner, .hero-title.split-ready .s-char { transform: none !important; opacity: 1 !important; }
 }
+
+/* =====================================================================
+   v3 upgrades: refined logo, live indicator, WebGL layer, fun facts,
+   agentic-ai skill group, Postman badge, 3D diorama
+   ===================================================================== */
+
+/* Refined monogram logo */
+.brand-mark {
+  width: 40px; height: 40px; border-radius: 12px; background: var(--bg-2);
+  border: 1px solid var(--border); box-shadow: none; overflow: hidden; position: relative;
+  display: grid; place-items: center; padding: 0; font-size: 0; letter-spacing: normal;
+  transition: border-color 0.3s, transform 0.3s;
+}
+.brand-mark svg { width: 100%; height: 100%; display: block; }
+.brand-mark::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(120deg, transparent 35%, rgba(255,255,255,0.28) 50%, transparent 65%);
+  transform: translateX(-130%); transition: transform 0.7s var(--ease);
+}
+.brand:hover .brand-mark { border-color: var(--accent); transform: rotate(-4deg); }
+.brand:hover .brand-mark::after { transform: translateX(130%); }
+.brand-mark.sm { width: 34px; height: 34px; border-radius: 10px; }
+.brand-mark.lg { width: 78px; height: 78px; border-radius: 22px; }
+.intro .brand-mark.lg { animation: introPop 0.7s var(--ease) both; }
+
+/* Live indicator (brand colored, replaces the generic green dot) */
+.live-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--grad); position: relative; display: inline-block; flex: none; }
+.live-dot::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 1.5px solid var(--accent); animation: livePulse 2.2s ease-out infinite; }
+@keyframes livePulse { 0% { transform: scale(0.55); opacity: 0.9; } 100% { transform: scale(1.7); opacity: 0; } }
+.b-now .bento-ico { background: var(--accent-soft); }
+
+/* WebGL 3D layer */
+.bg-webgl { position: fixed; inset: 0; z-index: -3; width: 100%; height: 100%; opacity: 0; transition: opacity 1.2s ease; pointer-events: none; }
+.bg-webgl.on { opacity: 1; }
+html.webgl-active .bg-canvas { opacity: 0 !important; transition: opacity 1s ease; }
+
+/* 3D diorama helpers (use individual translate/rotate so they compose with transform) */
+[data-depth] { transition: translate 0.3s cubic-bezier(0.22,1,0.36,1); will-change: translate; }
+.portrait-ring { animation: ringSpin 28s linear infinite; }
+@keyframes ringSpin { to { rotate: 360deg; } }
+
+/* Beyond the resume */
+.beyond-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 22px; align-items: stretch; }
+.fact-card { position: relative; border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius); padding: 40px; overflow: hidden; display: flex; flex-direction: column; justify-content: center; min-height: 280px; }
+.fact-quote { position: absolute; top: -10px; left: 26px; font-family: var(--font-display); font-size: 9rem; line-height: 1; color: var(--accent); opacity: 0.14; pointer-events: none; }
+.fact-label { color: var(--accent-2); font-size: 0.74rem; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 14px; position: relative; }
+.fact-text { font-family: var(--font-display); font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 500; line-height: 1.25; color: var(--text); min-height: 2.5em; transition: opacity 0.3s var(--ease), transform 0.3s var(--ease); position: relative; }
+.fact-text.swap { opacity: 0; transform: translateY(12px); }
+.fact-controls { display: flex; align-items: center; gap: 18px; margin-top: 28px; flex-wrap: wrap; }
+.fact-controls .btn svg { transition: transform 0.5s var(--ease); }
+.fact-controls .btn:hover svg { transform: rotate(180deg); }
+.fact-count { color: var(--text-faint); }
+.fun-chips { border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius); padding: 26px; display: flex; flex-direction: column; gap: 11px; }
+.fun-hint { color: var(--text-faint); font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 4px; }
+.fun-chip { text-align: left; padding: 14px 18px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-2); color: var(--text); font-weight: 500; font-size: 0.98rem; transition: border-color 0.25s, transform 0.25s, background 0.25s; display: flex; align-items: center; justify-content: space-between; }
+.fun-chip::after { content: "+"; color: var(--accent); font-family: var(--font-mono); font-size: 1.1rem; transition: transform 0.25s; }
+.fun-chip:hover { border-color: var(--accent); transform: translateX(6px); background: var(--accent-soft); }
+.fun-chip.active { border-color: var(--accent); background: var(--accent-soft); }
+.fun-chip.active::after { transform: rotate(45deg); }
+.fun-answer { margin-top: 8px; padding: 16px 18px; border-radius: var(--radius-sm); background: var(--grad); color: #fff; font-weight: 500; min-height: 3.2em; display: flex; align-items: center; transition: opacity 0.3s, transform 0.3s; }
+.fun-answer.swap { opacity: 0.35; transform: translateY(6px); }
+
+/* Skills: highlighted Agentic AI group + market tag */
+.skill-group.featured-group { grid-column: 1 / -1; border-color: var(--border-strong); background: linear-gradient(180deg, var(--accent-soft), var(--surface)); }
+.skill-group h3 .sg-icon.g { background: var(--grad); color: #fff; }
+.sg-tag { margin-left: auto; font-size: 0.64rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-2); border: 1px solid var(--border-strong); padding: 4px 10px; border-radius: 100px; }
+.skill-chip.hot { border-color: rgba(124,108,255,0.4); }
+.skill-chip.hot:hover { background: var(--grad); color: #fff; border-color: transparent; }
+
+/* Postman badge on Portage */
+.venture-status.postman { color: #ff8a5c; border-color: rgba(255,108,55,0.45); }
+
+/* v3 responsive */
+@media (max-width: 940px) {
+  .beyond-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 620px) {
+  .fact-card { padding: 28px; min-height: 240px; }
+  .fact-quote { font-size: 6rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portrait-ring, .float-card { animation: none !important; }
+  .bg-webgl { display: none !important; }
+}
+
+/* v3 fix: keep the decorative ring from overflowing on small screens */
+@media (max-width: 940px) {
+  .portrait-ring { animation: none !important; inset: -8px; }
+}
