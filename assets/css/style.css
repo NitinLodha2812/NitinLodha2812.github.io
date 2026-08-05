@@ -768,3 +768,6 @@ html[data-theme="light"] .ex-backdrop { background: rgba(40, 40, 70, 0.28); }
 
 /* Internal (private) project badge */
 .proj-badge { font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase; color: #ff8a5c; border: 1px solid rgba(255,108,55,0.4); padding: 3px 9px; border-radius: 100px; white-space: nowrap; font-weight: 500; flex: none; }
+
+/* Book chapter publication badge */
+.pub-venue.book { background: rgba(224,163,94,0.14); color: #e0a35e; }

@@ -335,7 +335,7 @@
       research: {
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
         kicker: "Yes, I actually read the papers", title: "10+ Publications",
-        body: "Ten plus peer reviewed papers across machine learning, computer vision, healthcare, security, and smart cities. My first went out in 2021 while I was still an undergrad, and I have kept publishing since. A favorite line of work is context based image retrieval, where a hybrid pipeline lifted medical image retrieval accuracy by up to 28 percent.",
+        body: "More than a dozen peer reviewed papers across machine learning, computer vision, healthcare, quantum computing, security, and smart cities. My first went out in 2021 while I was still an undergrad, and my latest landed in 2025. A favorite line of work is context based image retrieval, where a hybrid pipeline lifted medical image retrieval accuracy by up to 28 percent.",
         points: ["Venues across IEEE, AIP, and IGI", "Up to 28 percent gain on medical image retrieval", "From paddy leaf disease to smart city supply chains"],
         tags: ["Computer Vision", "Healthcare AI", "Optimization"], links: [{ href: "https://scholar.google.com/citations?user=LnlYBn0AAAAJ&hl=en", label: "View on Google Scholar", primary: true }]
       },
