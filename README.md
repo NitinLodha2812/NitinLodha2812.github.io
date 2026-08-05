@@ -1,54 +1,34 @@
-# Personal Portfolio ⚡️
+# Nitin Lodha - Portfolio
 
-> A clean, beautiful, responsive portfolio template for Software Developers!
+A modern, animated single page portfolio for Nitin Lodha, AI Engineer and builder.
 
-## Features 📋
+## What is inside
 
-⚡️ Fully Responsive\
-⚡️ Valid HTML5 & CSS3\
-⚡️ Typing animation using `Typed.js`\
-⚡️ Easy to modify
+- `index.html` - all content and structure
+- `assets/css/style.css` - full design system, light and dark themes, responsive layout
+- `assets/js/main.js` - all interactions (no external libraries)
+- `assets/img/` - portrait images
 
-## Installation & Deployment 📦
+## Features
 
-- Clone the repository and modify the content of <b>index.html</b> according to your requirement.
-- Add or remove images from `NitinLodha2812.github.io/assets/img/` directory as per your requirement.
-- I highly recommend to use [Github Pages](https://create-react-app.dev/docs/deployment/#github-pages) to deploy the website the EASIEST WAY.
-- To deploy your website, first you need to create github repository with name `<your-github-username>.github.io`. Please don't give any other name.
-- Push the generated code to the `master` branch of this repository.
-- <b>NOTE:</b> Make sure to set `analyticsId` from your Google Analytics account inside the Google Analytics script tag, if you want to use your own Google Analytics account.
+- Light and dark mode with a circular reveal transition, remembers your choice
+- Animated particle constellation background that reacts to the cursor
+- Custom cursor, magnetic buttons, and subtle 3D tilt on cards
+- Scroll reveal animations, animated counters, and a typed hero role
+- Sections: Hero, About, Experience, Ventures (entrepreneurship), Projects, Skills, Research, Education, Contact
+- Fully responsive with a dedicated mobile menu
+- Respects `prefers-reduced-motion` and `prefers-color-scheme`
 
-## Sections 📚
+## Run it locally
 
-✔️ About me\
-✔️ Experience\
-✔️ Projects \
-✔️ Skills \
-✔️ Education\
-✔️ Contact Info\
-✔️ Resume
+```bash
+cd site
+python3 -m http.server 8123
+```
 
-## Tools Used 🛠️
+Then open http://localhost:8123 in a browser.
 
-- [<b>GitHub Pages</b>](https://create-react-app.dev/docs/deployment/#github-pages) - To host my static website (HTML, CSS, JS).
-- [<b>Materialize</b>](https://materializecss.com/) - A CSS framework to get Google's Material Design components.
-- [<b>Typed.js</b>](https://mattboldt.com/demos/typed-js/) - JavaScript Library
+## Deploy
 
-## Contributing 💡
-
-#### Step 1
-
-- **Option 1**
-
-  - 🍴 Fork this repo!
-
-- **Option 2**
-  - 👯 Clone this repo to your local machine.
-
-#### Step 2
-
-- **Build your code** 🔨🔨🔨
-
-#### Step 3
-
-- 🔃 Create a new pull request.
+This is a static site. It can be served from any static host or from GitHub Pages
+by placing these files at the root of the `NitinLodha2812.github.io` repository.
