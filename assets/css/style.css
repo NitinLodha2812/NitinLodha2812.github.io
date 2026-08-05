@@ -765,3 +765,6 @@ html[data-theme="light"] .ex-backdrop { background: rgba(40, 40, 70, 0.28); }
 .ex-overlay.open { pointer-events: auto; }
 .exd-ctas { display: flex; flex-wrap: wrap; gap: 12px; }
 .venture-soon svg { width: 15px !important; height: 15px !important; flex: none; }
+
+/* Internal (private) project badge */
+.proj-badge { font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase; color: #ff8a5c; border: 1px solid rgba(255,108,55,0.4); padding: 3px 9px; border-radius: 100px; white-space: nowrap; font-weight: 500; flex: none; }
