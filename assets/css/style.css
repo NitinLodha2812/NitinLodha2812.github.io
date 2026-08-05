@@ -759,3 +759,9 @@ html[data-theme="light"] .ex-backdrop { background: rgba(40, 40, 70, 0.28); }
 /* Portage "coming soon" text (no link) */
 .venture-soon { display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-faint); font-family: var(--font-mono); }
 .venture-soon svg { width: 15px; height: 15px; color: var(--accent); }
+
+/* v6 fixes: overlay click-through, multi CTA, robust lock icon */
+.ex-overlay { pointer-events: none; }
+.ex-overlay.open { pointer-events: auto; }
+.exd-ctas { display: flex; flex-wrap: wrap; gap: 12px; }
+.venture-soon svg { width: 15px !important; height: 15px !important; flex: none; }

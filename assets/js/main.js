@@ -330,42 +330,42 @@
         kicker: "The problem I keep coming back to", title: "AI Agents and Guardrails",
         body: "I build autonomous agents and the systems that keep them honest. A recruiting copilot at Postman that ranks candidates with Claude and a Qdrant vector index. An HR chatbot that answers Workday questions with read only tools. And Corda AI, my venture, a control plane that decides allow, deny, or hold for a human in about a tenth of a millisecond, then keeps a tamper evident record.",
         points: ["Recruiter Agent: chat in, ranked shortlist out", "Corda AI: runtime permissions, approvals, and audit", "Agents that ask a human when they should"],
-        tags: ["Agentic AI", "Claude", "Qdrant", "MCP"], link: { href: "https://cordaai.co/", label: "Visit Corda AI" }
+        tags: ["Agentic AI", "Claude", "Qdrant", "MCP"], links: [{ href: "https://cordaai.co/", label: "Visit Corda AI", primary: true }]
       },
       research: {
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
         kicker: "Yes, I actually read the papers", title: "10+ Publications",
         body: "Ten plus peer reviewed papers across machine learning, computer vision, healthcare, security, and smart cities. My first went out in 2021 while I was still an undergrad, and I have kept publishing since. A favorite line of work is context based image retrieval, where a hybrid pipeline lifted medical image retrieval accuracy by up to 28 percent.",
         points: ["Venues across IEEE, AIP, and IGI", "Up to 28 percent gain on medical image retrieval", "From paddy leaf disease to smart city supply chains"],
-        tags: ["Computer Vision", "Healthcare AI", "Optimization"], link: { href: "https://scholar.google.com/citations?user=LnlYBn0AAAAJ&hl=en", label: "View on Google Scholar" }
+        tags: ["Computer Vision", "Healthcare AI", "Optimization"], links: [{ href: "https://scholar.google.com/citations?user=LnlYBn0AAAAJ&hl=en", label: "View on Google Scholar", primary: true }]
       },
       matlab: {
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>',
         kicker: "A rewrite I am proud of", title: "From MATLAB to the browser",
         body: "A cardiology lab had a MATLAB tool for studying cerebral blood flow in LVAD heart pump patients. I rebuilt it as a full Python and Flask web app. From raw signals sampled at 125 Hz it computes cerebral autoregulation, cerebrovascular reactivity, and per beat pulsatility, and it separates heart driven from pump driven beats. Results export straight to Excel and JSON.",
         points: ["125 Hz signal processing in the browser", "Clinical metrics: CA, Mx, CVR, and PI", "No MATLAB license required"],
-        tags: ["Python", "Flask", "Signal Processing"], link: { href: "https://github.com/NitinLodha2812/Serial-LVAD", label: "See the code" }
+        tags: ["Python", "Flask", "Signal Processing"], links: [{ href: "https://github.com/NitinLodha2812/Serial-LVAD", label: "See the code", primary: true }]
       },
       multimodal: {
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg>',
         kicker: "I can put you in a movie", title: "Multimodal magic",
         body: "For my computer vision course at Penn I built a pipeline that drops you into a cinematic scene. It captions your uploaded photo, writes a scene with an LLM, generates the frame with Stable Diffusion, and face swaps you into it, all behind a simple Gradio interface.",
         points: ["Image to text to image, chained end to end", "Stable Diffusion for the frame, face swap for you", "Wrapped in a one click Gradio app"],
-        tags: ["Diffusers", "PyTorch", "Gradio"], link: { href: "https://github.com/NitinLodha2812/CIS5810-Cinematic", label: "See the code" }
+        tags: ["Diffusers", "PyTorch", "Gradio"], links: [{ href: "https://github.com/NitinLodha2812/CIS5810-Cinematic", label: "See the code", primary: true }]
       },
       range: {
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>',
         kicker: "Same curiosity, different altitude", title: "Low level to high level",
         body: "I like the whole ladder of hard problems. Down low, an N-ary tree file system in C++ with OpenMP that made backups more than 100 percent faster through hashing and change detection. Up high, LLM agents, full stack products, and research. The fun is in moving between them.",
         points: ["C++ and OpenMP for parallel, faster backups", "Distributed systems and observability from Ericsson and Fiserv", "Full stack from React to FastAPI to Flask"],
-        tags: ["C++", "OpenMP", "Systems"], link: { href: "https://github.com/NitinLodha2812/N-ary-tree-file-system", label: "See the code" }
+        tags: ["C++", "OpenMP", "Systems"], links: [{ href: "https://github.com/NitinLodha2812/N-ary-tree-file-system", label: "See the code", primary: true }]
       },
       next: {
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>',
         kicker: "Where I am headed", title: "What is next",
         body: "I want to keep building AI agents that people can actually trust, ship Corda AI to teams running agents in production, and turn more research into products that hold up in the real world. If you are working on something hard in agents, full stack, or ML, I would love to talk.",
         points: ["Trustworthy, auditable AI agents", "Research that becomes real products", "Always up for a hard problem"],
-        tags: ["Agents", "Guardrails", "Products"], link: { href: "#contact", label: "Get in touch" }
+        tags: ["Agents", "Guardrails", "Products"], links: [{ href: "https://cordaai.co/", label: "Visit Corda AI", primary: true }, { href: "#contact", label: "Get in touch" }]
       }
     };
 
@@ -380,13 +380,16 @@
     function detailHTML(d) {
       var pts = (d.points || []).map(function (p) { return '<li>' + ck + '<span>' + p + '</span></li>'; }).join("");
       var tags = (d.tags || []).map(function (t) { return '<span class="chip">' + t + '</span>'; }).join("");
-      var ext = d.link.href.charAt(0) === "#" ? "" : ' target="_blank" rel="noopener"';
-      var link = '<a class="btn btn-primary exd-anim" href="' + d.link.href + '"' + ext + ' data-cursor data-magnetic>' + d.link.label + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>';
+      var ctas = (d.links || []).map(function (l) {
+        var ext = l.href.charAt(0) === "#" ? "" : ' target="_blank" rel="noopener"';
+        var cls = l.primary ? "btn btn-primary" : "btn btn-ghost";
+        return '<a class="' + cls + ' exd-cta" href="' + l.href + '"' + ext + ' data-cursor>' + l.label + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>';
+      }).join("");
       return '<div class="exd-head exd-anim"><span class="exd-ico">' + d.icon + '</span><div><span class="exd-kicker">' + d.kicker + '</span><h3 class="exd-title">' + d.title + '</h3></div></div>'
         + '<p class="exd-body exd-anim">' + d.body + '</p>'
         + (pts ? '<ul class="exd-points">' + pts + '</ul>' : '')
         + (tags ? '<div class="exd-tags exd-anim">' + tags + '</div>' : '')
-        + link;
+        + (ctas ? '<div class="exd-ctas exd-anim">' + ctas + '</div>' : '');
     }
     function flip(from, reverse) {
       var last = panel.getBoundingClientRect();
@@ -412,11 +415,30 @@
           el.style.opacity = "1"; el.style.transform = "none";
         });
       } else { anims.forEach(function (el) { el.style.opacity = "1"; el.style.transform = "none"; }); }
+      inner.querySelectorAll("a.exd-cta").forEach(function (link) {
+        link.addEventListener("click", function (e) {
+          var href = link.getAttribute("href");
+          if (href && href.charAt(0) === "#") {
+            e.preventDefault();
+            close(function () {
+              var target = document.querySelector(href); if (!target) return;
+              if (window.__lenis) window.__lenis.scrollTo(target, { offset: -70 });
+              else window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - 70, behavior: reduceMotion ? "auto" : "smooth" });
+            });
+          } else { close(); }
+        });
+      });
       if (closeBtn) closeBtn.focus();
     }
-    function close() {
-      if (!isOpen) return;
-      var done = function () { overlay.classList.remove("open"); overlay.setAttribute("aria-hidden", "true"); document.body.classList.remove("no-scroll"); if (window.__lenis) window.__lenis.start(); isOpen = false; if (activeTile && activeTile.focus) activeTile.focus(); activeTile = null; };
+    function close(cb) {
+      if (!isOpen) { if (typeof cb === "function") cb(); return; }
+      var done = function () {
+        overlay.classList.remove("open"); overlay.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("no-scroll"); if (window.__lenis) window.__lenis.start();
+        isOpen = false; var t = activeTile; activeTile = null;
+        if (t && t.focus && typeof cb !== "function") t.focus();
+        if (typeof cb === "function") cb();
+      };
       if (!reduceMotion && activeTile && panel.animate) {
         var a = flip(activeTile.getBoundingClientRect(), true);
         overlay.classList.remove("open");
