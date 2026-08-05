@@ -321,6 +321,114 @@
     });
   })();
 
+  /* ---------- Explore: expandable grid with FLIP morph panel ---------- */
+  (function explore() {
+    var ck = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+    var EX = {
+      agents: {
+        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V4H8M2 14h2M20 14h2M9 13v2M15 13v2"/></svg>',
+        kicker: "The problem I keep coming back to", title: "AI Agents and Guardrails",
+        body: "I build autonomous agents and the systems that keep them honest. A recruiting copilot at Postman that ranks candidates with Claude and a Qdrant vector index. An HR chatbot that answers Workday questions with read only tools. And Corda AI, my venture, a control plane that decides allow, deny, or hold for a human in about a tenth of a millisecond, then keeps a tamper evident record.",
+        points: ["Recruiter Agent: chat in, ranked shortlist out", "Corda AI: runtime permissions, approvals, and audit", "Agents that ask a human when they should"],
+        tags: ["Agentic AI", "Claude", "Qdrant", "MCP"], link: { href: "https://github.com/NitinLodha2812", label: "See the code" }
+      },
+      research: {
+        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+        kicker: "Yes, I actually read the papers", title: "10+ Publications",
+        body: "Ten plus peer reviewed papers across machine learning, computer vision, healthcare, security, and smart cities. My first went out in 2021 while I was still an undergrad, and I have kept publishing since. A favorite line of work is context based image retrieval, where a hybrid pipeline lifted medical image retrieval accuracy by up to 28 percent.",
+        points: ["Venues across IEEE, AIP, and IGI", "Up to 28 percent gain on medical image retrieval", "From paddy leaf disease to smart city supply chains"],
+        tags: ["Computer Vision", "Healthcare AI", "Optimization"], link: { href: "https://scholar.google.com/citations?user=LnlYBn0AAAAJ&hl=en", label: "View on Google Scholar" }
+      },
+      matlab: {
+        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>',
+        kicker: "A rewrite I am proud of", title: "From MATLAB to the browser",
+        body: "A cardiology lab had a MATLAB tool for studying cerebral blood flow in LVAD heart pump patients. I rebuilt it as a full Python and Flask web app. From raw signals sampled at 125 Hz it computes cerebral autoregulation, cerebrovascular reactivity, and per beat pulsatility, and it separates heart driven from pump driven beats. Results export straight to Excel and JSON.",
+        points: ["125 Hz signal processing in the browser", "Clinical metrics: CA, Mx, CVR, and PI", "No MATLAB license required"],
+        tags: ["Python", "Flask", "Signal Processing"], link: { href: "https://github.com/NitinLodha2812/Serial-LVAD", label: "See the code" }
+      },
+      multimodal: {
+        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg>',
+        kicker: "I can put you in a movie", title: "Multimodal magic",
+        body: "For my computer vision course at Penn I built a pipeline that drops you into a cinematic scene. It captions your uploaded photo, writes a scene with an LLM, generates the frame with Stable Diffusion, and face swaps you into it, all behind a simple Gradio interface.",
+        points: ["Image to text to image, chained end to end", "Stable Diffusion for the frame, face swap for you", "Wrapped in a one click Gradio app"],
+        tags: ["Diffusers", "PyTorch", "Gradio"], link: { href: "https://github.com/NitinLodha2812/CIS5810-Cinematic", label: "See the code" }
+      },
+      range: {
+        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>',
+        kicker: "Same curiosity, different altitude", title: "Low level to high level",
+        body: "I like the whole ladder of hard problems. Down low, an N-ary tree file system in C++ with OpenMP that made backups more than 100 percent faster through hashing and change detection. Up high, LLM agents, full stack products, and research. The fun is in moving between them.",
+        points: ["C++ and OpenMP for parallel, faster backups", "Distributed systems and observability from Ericsson and Fiserv", "Full stack from React to FastAPI to Flask"],
+        tags: ["C++", "OpenMP", "Systems"], link: { href: "https://github.com/NitinLodha2812/N-ary-tree-file-system", label: "See the code" }
+      },
+      next: {
+        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>',
+        kicker: "Where I am headed", title: "What is next",
+        body: "I want to keep building AI agents that people can actually trust, ship Corda AI to teams running agents in production, and turn more research into products that hold up in the real world. If you are working on something hard in agents, full stack, or ML, I would love to talk.",
+        points: ["Trustworthy, auditable AI agents", "Research that becomes real products", "Always up for a hard problem"],
+        tags: ["Agents", "Guardrails", "Products"], link: { href: "#contact", label: "Get in touch" }
+      }
+    };
+
+    var overlay = document.getElementById("exOverlay");
+    var panel = document.getElementById("exPanel");
+    var inner = document.getElementById("exPanelInner");
+    var closeBtn = document.getElementById("exClose");
+    var backdrop = document.getElementById("exBackdrop");
+    if (!overlay || !panel || !inner) return;
+    var activeTile = null, isOpen = false;
+
+    function detailHTML(d) {
+      var pts = (d.points || []).map(function (p) { return '<li>' + ck + '<span>' + p + '</span></li>'; }).join("");
+      var tags = (d.tags || []).map(function (t) { return '<span class="chip">' + t + '</span>'; }).join("");
+      var ext = d.link.href.charAt(0) === "#" ? "" : ' target="_blank" rel="noopener"';
+      var link = '<a class="btn btn-primary exd-anim" href="' + d.link.href + '"' + ext + ' data-cursor data-magnetic>' + d.link.label + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>';
+      return '<div class="exd-head exd-anim"><span class="exd-ico">' + d.icon + '</span><div><span class="exd-kicker">' + d.kicker + '</span><h3 class="exd-title">' + d.title + '</h3></div></div>'
+        + '<p class="exd-body exd-anim">' + d.body + '</p>'
+        + (pts ? '<ul class="exd-points">' + pts + '</ul>' : '')
+        + (tags ? '<div class="exd-tags exd-anim">' + tags + '</div>' : '')
+        + link;
+    }
+    function flip(from, reverse) {
+      var last = panel.getBoundingClientRect();
+      var dx = (from.left + from.width / 2) - (last.left + last.width / 2);
+      var dy = (from.top + from.height / 2) - (last.top + last.height / 2);
+      var sx = Math.max(from.width / last.width, 0.1), sy = Math.max(from.height / last.height, 0.1);
+      var a = { transform: "translate(" + dx + "px," + dy + "px) scale(" + sx + "," + sy + ")", opacity: 0.3, borderRadius: "20px" };
+      var b = { transform: "none", opacity: 1, borderRadius: "24px" };
+      return panel.animate(reverse ? [b, a] : [a, b], { duration: reverse ? 420 : 520, easing: reverse ? "cubic-bezier(0.5,0,0.75,0)" : "cubic-bezier(0.22,1,0.36,1)" });
+    }
+    function open(tile) {
+      var d = EX[tile.getAttribute("data-ex")]; if (!d) return;
+      activeTile = tile; inner.innerHTML = detailHTML(d);
+      overlay.classList.add("open"); overlay.setAttribute("aria-hidden", "false");
+      document.body.classList.add("no-scroll"); if (window.__lenis) window.__lenis.stop();
+      panel.scrollTop = 0; isOpen = true;
+      var anims = inner.querySelectorAll(".exd-anim, .exd-points li");
+      if (!reduceMotion && tile.getBoundingClientRect && panel.animate) {
+        panel.style.transform = "none";
+        flip(tile.getBoundingClientRect(), false);
+        anims.forEach(function (el, i) {
+          el.animate([{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 500, delay: 190 + i * 65, easing: "cubic-bezier(0.22,1,0.36,1)", fill: "backwards" });
+          el.style.opacity = "1"; el.style.transform = "none";
+        });
+      } else { anims.forEach(function (el) { el.style.opacity = "1"; el.style.transform = "none"; }); }
+      if (closeBtn) closeBtn.focus();
+    }
+    function close() {
+      if (!isOpen) return;
+      var done = function () { overlay.classList.remove("open"); overlay.setAttribute("aria-hidden", "true"); document.body.classList.remove("no-scroll"); if (window.__lenis) window.__lenis.start(); isOpen = false; if (activeTile && activeTile.focus) activeTile.focus(); activeTile = null; };
+      if (!reduceMotion && activeTile && panel.animate) {
+        var a = flip(activeTile.getBoundingClientRect(), true);
+        overlay.classList.remove("open");
+        a.onfinish = done; a.oncancel = done;
+      } else { done(); }
+    }
+    document.querySelectorAll(".ex-tile").forEach(function (tile) { tile.addEventListener("click", function () { open(tile); }); });
+    if (closeBtn) closeBtn.addEventListener("click", close);
+    if (backdrop) backdrop.addEventListener("click", close);
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
+  })();
+
   /* ---------- Particle constellation background ---------- */
   var canvas = document.getElementById("bgCanvas");
   if (canvas && canvas.getContext) {
@@ -446,10 +554,31 @@
     var pmat = new THREE.PointsMaterial({ color: tc.b, size: 0.13, transparent: true, opacity: 0.85 });
     var points = new THREE.Points(pgeo, pmat); group.add(points);
 
-    window.__recolorWebgl = function () { var c = themeColors(); mat.color.setHex(c.a); pmat.color.setHex(c.b); };
+    // counter rotating inner core for depth
+    var geo2 = new THREE.IcosahedronGeometry(3.5, 1);
+    var mat2 = new THREE.MeshBasicMaterial({ color: tc.b, wireframe: true, transparent: true, opacity: 0.16 });
+    var mesh2 = new THREE.Mesh(geo2, mat2); group.add(mesh2);
+
+    window.__recolorWebgl = function () { var c = themeColors(); mat.color.setHex(c.a); pmat.color.setHex(c.b); mat2.color.setHex(c.b); };
 
     var mX = 0, mY = 0;
     window.addEventListener("mousemove", function (e) { mX = e.clientX / window.innerWidth - 0.5; mY = e.clientY / window.innerHeight - 0.5; });
+
+    // drag anywhere on empty background to spin the object, with inertia
+    var dvx = 0, dvy = 0, dragging = false, lastX = 0, lastY = 0;
+    function draggableTarget(t) { return !(t && t.closest && t.closest("a,button,input,textarea,[data-cursor],[data-tilt],.ex-tile,.fun-chip,.skill-chip,.pub")); }
+    window.addEventListener("pointerdown", function (e) {
+      if (e.button !== 0 || !draggableTarget(e.target)) return;
+      dragging = true; lastX = e.clientX; lastY = e.clientY; document.body.style.userSelect = "none";
+      var dh = document.getElementById("dragHint"); if (dh) dh.classList.add("hide");
+    });
+    window.addEventListener("pointermove", function (e) {
+      if (!dragging) return;
+      var dx = e.clientX - lastX, dy = e.clientY - lastY; lastX = e.clientX; lastY = e.clientY;
+      dvy = dx * 0.006; dvx = dy * 0.006;
+      group.rotation.y += dvy; group.rotation.x += dvx;
+    });
+    window.addEventListener("pointerup", function () { if (dragging) { dragging = false; document.body.style.userSelect = ""; } });
     window.addEventListener("resize", function () {
       camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
@@ -466,7 +595,8 @@
         ppos.array[i] = ox * f; ppos.array[i + 1] = oy * f; ppos.array[i + 2] = oz * f;
       }
       pos.needsUpdate = true; ppos.needsUpdate = true;
-      group.rotation.y += 0.0016; group.rotation.x += 0.0008;
+      if (!dragging) { group.rotation.y += 0.0016 + dvy; group.rotation.x += 0.0008 + dvx; dvy *= 0.94; dvx *= 0.94; }
+      mesh2.rotation.y -= 0.004; mesh2.rotation.x -= 0.0022;
       camera.position.x += (mX * 5 - camera.position.x) * 0.04;
       camera.position.y += (-mY * 5 - camera.position.y) * 0.04;
       camera.lookAt(0, 0, 0);

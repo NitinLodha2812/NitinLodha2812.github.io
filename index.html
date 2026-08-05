@@ -135,6 +135,7 @@
         </div>
       </div>
       <div class="scroll-cue"><span class="mouse"></span>SCROLL</div>
+      <div class="drag-hint" id="dragHint"><span class="dh-dot"></span>drag anywhere to spin</div>
     </section>
 
     <!-- Marquee -->
@@ -420,6 +421,68 @@
             See everything on GitHub
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.7 1.3 3.4 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.6 18.3 5 18.3 5c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6 4.6-1.5 7.9-5.8 7.9-10.9C23.5 5.7 18.3.5 12 .5z"/></svg>
           </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Explore (interactive expandable grid) -->
+    <section id="explore">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="eyebrow">+ / Explore</span>
+          <h2 class="section-title split-words">Pick a thread and <span class="grad">dig in</span></h2>
+          <p class="section-sub">Six sides of how I think and build. Tap any tile and it opens up.</p>
+        </div>
+        <div class="explore-grid" id="exploreGrid">
+          <button class="ex-tile reveal" data-ex="agents" data-cursor>
+            <span class="ex-num mono">01</span>
+            <span class="ex-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V4H8M2 14h2M20 14h2M9 13v2M15 13v2"/></svg></span>
+            <span class="ex-title">AI Agents and Guardrails</span>
+            <span class="ex-teaser">The problem I keep coming back to</span>
+            <span class="ex-open mono">Open <b>+</b></span>
+          </button>
+          <button class="ex-tile reveal d1" data-ex="research" data-cursor>
+            <span class="ex-num mono">02</span>
+            <span class="ex-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
+            <span class="ex-title">10+ Publications</span>
+            <span class="ex-teaser">Yes, I actually read the papers</span>
+            <span class="ex-open mono">Open <b>+</b></span>
+          </button>
+          <button class="ex-tile reveal d2" data-ex="matlab" data-cursor>
+            <span class="ex-num mono">03</span>
+            <span class="ex-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg></span>
+            <span class="ex-title">From MATLAB to the browser</span>
+            <span class="ex-teaser">A rewrite I am proud of</span>
+            <span class="ex-open mono">Open <b>+</b></span>
+          </button>
+          <button class="ex-tile reveal" data-ex="multimodal" data-cursor>
+            <span class="ex-num mono">04</span>
+            <span class="ex-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg></span>
+            <span class="ex-title">Multimodal magic</span>
+            <span class="ex-teaser">I can put you in a movie</span>
+            <span class="ex-open mono">Open <b>+</b></span>
+          </button>
+          <button class="ex-tile reveal d1" data-ex="range" data-cursor>
+            <span class="ex-num mono">05</span>
+            <span class="ex-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg></span>
+            <span class="ex-title">Low level to high level</span>
+            <span class="ex-teaser">Same curiosity, different altitude</span>
+            <span class="ex-open mono">Open <b>+</b></span>
+          </button>
+          <button class="ex-tile reveal d2" data-ex="next" data-cursor>
+            <span class="ex-num mono">06</span>
+            <span class="ex-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
+            <span class="ex-title">What is next</span>
+            <span class="ex-teaser">Where I am headed</span>
+            <span class="ex-open mono">Open <b>+</b></span>
+          </button>
+        </div>
+      </div>
+      <div class="ex-overlay" id="exOverlay" aria-hidden="true">
+        <div class="ex-backdrop" id="exBackdrop"></div>
+        <div class="ex-panel" id="exPanel" role="dialog" aria-modal="true">
+          <button class="ex-close" id="exClose" aria-label="Close" data-cursor><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+          <div class="ex-panel-inner" id="exPanelInner"></div>
         </div>
       </div>
     </section>
