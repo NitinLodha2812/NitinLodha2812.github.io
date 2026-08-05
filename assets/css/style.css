@@ -755,3 +755,7 @@ html[data-theme="light"] .ex-backdrop { background: rgba(40, 40, 70, 0.28); }
   .exd-head { flex-direction: column; align-items: flex-start; gap: 12px; }
 }
 @media (prefers-reduced-motion: reduce) { .exd-anim { opacity: 1 !important; transform: none !important; } }
+
+/* Portage "coming soon" text (no link) */
+.venture-soon { display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-faint); font-family: var(--font-mono); }
+.venture-soon svg { width: 15px; height: 15px; color: var(--accent); }
