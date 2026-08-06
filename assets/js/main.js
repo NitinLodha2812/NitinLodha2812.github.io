@@ -666,8 +666,8 @@
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, mobile ? 1.5 : 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
     var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera(62, window.innerWidth / window.innerHeight, 0.1, 240);
-    camera.position.set(0, 4.6, 22);
+    var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 240);
+    camera.position.set(0, 0, 18);
 
     function themeColors() {
       var light = root.getAttribute("data-theme") === "light";
@@ -678,32 +678,19 @@
       };
     }
     var tc = themeColors();
-    scene.fog = new THREE.FogExp2(tc.fog, 0.016);
+    scene.fog = new THREE.FogExp2(tc.fog, 0.012);
 
-    // Starfield (BufferGeometry, single draw call) drifting toward the camera
-    var STAR = mobile ? 900 : 2400, spread = 130;
+    // Calm starfield for a real universe feel (sparse, slow, depth via fog)
+    var STAR = mobile ? 400 : 1000, spread = 120;
     var sgeo = new THREE.BufferGeometry(), sp = new Float32Array(STAR * 3);
-    for (var s = 0; s < STAR; s++) { sp[s * 3] = (Math.random() - 0.5) * spread; sp[s * 3 + 1] = (Math.random() - 0.5) * spread; sp[s * 3 + 2] = (Math.random() - 0.5) * spread; }
+    for (var s = 0; s < STAR; s++) { sp[s * 3] = (Math.random() - 0.5) * spread; sp[s * 3 + 1] = (Math.random() - 0.5) * spread; sp[s * 3 + 2] = -115 + Math.random() * 127; }
     sgeo.setAttribute("position", new THREE.BufferAttribute(sp, 3));
-    var smat = new THREE.PointsMaterial({ color: tc.star, size: mobile ? 0.3 : 0.24, transparent: true, opacity: 0.9, sizeAttenuation: true, fog: true });
+    var smat = new THREE.PointsMaterial({ color: tc.star, size: mobile ? 0.24 : 0.2, transparent: true, opacity: 0.85, sizeAttenuation: true, fog: true });
     var stars = new THREE.Points(sgeo, smat); scene.add(stars);
 
-    // Perspective tech grid (floor + faint ceiling) that scrolls toward the camera
-    function makeGrid(size, div, color, y, op) {
-      var half = size / 2, step = size / div, v = [];
-      for (var k = 0; k <= div; k++) { var q = -half + k * step; v.push(-half, 0, q, half, 0, q); v.push(q, 0, -half, q, 0, half); }
-      var g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
-      var m = new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: op, fog: true });
-      var mesh = new THREE.LineSegments(g, m); mesh.position.y = y; scene.add(mesh);
-      return { mesh: mesh, mat: m, step: step };
-    }
-    var gsize = 180, gdiv = mobile ? 36 : 60;
-    var floor = makeGrid(gsize, gdiv, tc.grid, -7, 0.6);
-    var ceil = makeGrid(gsize, gdiv, tc.grid, 17, 0.14);
-
     // Morphing core, offset right so it clears the headline text
-    var group = new THREE.Group(); scene.add(group); group.position.x = 5;
-    var geo = new THREE.IcosahedronGeometry(5.6, mobile ? 2 : 3);
+    var group = new THREE.Group(); scene.add(group); group.position.x = 4.6;
+    var geo = new THREE.IcosahedronGeometry(6.2, mobile ? 2 : 3);
     var orig = geo.attributes.position.array.slice(0);
     var mat = new THREE.MeshBasicMaterial({ color: tc.core, wireframe: true, transparent: true, opacity: 0.28 });
     var mesh = new THREE.Mesh(geo, mat); group.add(mesh);
@@ -717,7 +704,7 @@
     window.__recolorWebgl = function () {
       var c = themeColors();
       mat.color.setHex(c.core); pmat.color.setHex(c.node); mat2.color.setHex(c.node);
-      smat.color.setHex(c.star); floor.mat.color.setHex(c.grid); ceil.mat.color.setHex(c.grid);
+      smat.color.setHex(c.star);
       if (scene.fog) scene.fog.color.setHex(c.fog);
     };
 
@@ -760,14 +747,12 @@
       if (!dragging) { group.rotation.y += 0.0016 + dvy; group.rotation.x += 0.0008 + dvx; dvy *= 0.94; dvx *= 0.94; }
       mesh2.rotation.y -= 0.004; mesh2.rotation.x -= 0.0022;
       group.rotation.y += burst * 0.05; group.scale.setScalar(1 + burst * 0.22); burst *= 0.93;
-      // stars drift toward the camera and wrap
-      for (var j = 0; j < STAR; j++) { sposArr[j * 3 + 2] += 0.05; if (sposArr[j * 3 + 2] > 65) sposArr[j * 3 + 2] -= 130; }
-      sgeo.attributes.position.needsUpdate = true; stars.rotation.y += 0.0003;
-      floor.mesh.position.z = (floor.mesh.position.z + 0.06) % floor.step;
-      ceil.mesh.position.z = (ceil.mesh.position.z + 0.05) % ceil.step;
-      camera.position.x += (mX * 4 - camera.position.x) * 0.03;
-      camera.position.y += ((4.6 - mY * 3) - camera.position.y) * 0.03;
-      camera.lookAt(0, 0.5, 0);
+      // stars drift very slowly for a calm, real universe feel
+      for (var j = 0; j < STAR; j++) { sposArr[j * 3 + 2] += 0.012; if (sposArr[j * 3 + 2] > 12) sposArr[j * 3 + 2] -= 127; }
+      sgeo.attributes.position.needsUpdate = true; stars.rotation.y += 0.00008;
+      camera.position.x += (mX * 5 - camera.position.x) * 0.04;
+      camera.position.y += (-mY * 5 - camera.position.y) * 0.04;
+      camera.lookAt(0, 0, 0);
       group.position.y = (window.scrollY || 0) * 0.006;
       renderer.render(scene, camera);
       requestAnimationFrame(animate);
