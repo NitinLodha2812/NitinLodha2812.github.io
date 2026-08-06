@@ -657,6 +657,44 @@
     </section>
   </main>
 
+  <!-- Surprise: run my AI agent -->
+  <button class="fab" id="agentFab" aria-label="Run my AI agent on the candidate" data-cursor>
+    <span class="fab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V4H8M2 14h2M20 14h2M9 13v2M15 13v2"/></svg></span>
+    <span class="fab-label">Run my agent</span>
+  </button>
+  <div class="agent-overlay" id="agentOverlay" aria-hidden="true">
+    <div class="agent-backdrop" id="agentBackdrop"></div>
+    <div class="agent-modal" role="dialog" aria-modal="true" aria-label="AI agent candidate evaluation">
+      <button class="ex-close" id="agentClose" aria-label="Close" data-cursor><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      <div class="agent-console" id="agentConsole">
+        <div class="agent-badge mono"><span class="live-dot"></span> nitin.agent // candidate evaluation</div>
+        <div class="agent-lines" id="agentLines"></div>
+      </div>
+      <div class="proofcard" id="proofcard">
+        <div class="pc-head">
+          <span class="pc-label mono">ProofCard</span>
+          <span class="pc-verdict" id="pcVerdict">Verdict: HIRE</span>
+        </div>
+        <div class="pc-main">
+          <div class="pc-score">
+            <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="pc-track" cx="60" cy="60" r="52"/><circle class="pc-ring" id="pcRing" cx="60" cy="60" r="52"/></svg>
+            <div class="pc-score-val"><span id="pcScoreNum">92</span><small>/100</small></div>
+          </div>
+          <ul class="pc-traits" id="pcTraits"></ul>
+        </div>
+        <p class="pc-note" id="pcNote"></p>
+        <div class="pc-actions">
+          <button class="btn btn-primary" id="agentAgain" data-cursor>
+            Run it again
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+          </button>
+          <a class="btn btn-ghost" href="#contact" id="agentHire" data-cursor>Get in touch</a>
+        </div>
+      </div>
+    </div>
+    <canvas class="confetti" id="confetti"></canvas>
+  </div>
+
   <footer class="footer">
     <div class="container footer-inner">
       <a href="#home" class="brand" data-cursor>

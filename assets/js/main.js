@@ -451,6 +451,116 @@
     document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
   })();
 
+  /* ---------- Surprise: run my AI agent, get a ProofCard verdict ---------- */
+  (function agentSurprise() {
+    var fab = document.getElementById("agentFab");
+    var overlay = document.getElementById("agentOverlay");
+    var backdrop = document.getElementById("agentBackdrop");
+    var closeBtn = document.getElementById("agentClose");
+    var linesEl = document.getElementById("agentLines");
+    var consoleEl = document.getElementById("agentConsole");
+    var proofcard = document.getElementById("proofcard");
+    var againBtn = document.getElementById("agentAgain");
+    var hireBtn = document.getElementById("agentHire");
+    var confetti = document.getElementById("confetti");
+    if (!fab || !overlay || !consoleEl || !proofcard) return;
+
+    function rnd() { if (window.crypto && crypto.getRandomValues) { var a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] / 4294967296; } return 0.5; }
+    function pick(a) { return a[Math.floor(rnd() * a.length)]; }
+    function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(rnd() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+
+    var VERDICTS = ["Verdict: HIRE", "Verdict: STRONG HIRE", "Verdict: SHIP HIM", "Verdict: HIRE. TWICE.", "Verdict: OFFER SENT"];
+    var TRAITS = ["Ships agents end to end", "12 published papers", "Curious to a fault", "Turns research into products", "Builds guardrails, not just agents", "Low level to LLM, full range", "Moves fast, breaks nothing", "Reads the papers, then writes them", "Shipped at Postman, Ericsson, Samsung", "A relentless late night builder"];
+    var NOTES = ["My agent is biased, but it is not wrong.", "Ran the numbers. The numbers say hire.", "Even the guardrails approved this one.", "Sourced the whole database. Found one Nitin.", "Deterministic rules and the LLM agree.", "Scored in the top percentile of one."];
+
+    var timers = [], running = false;
+    function clearTimers() { timers.forEach(clearTimeout); timers = []; }
+
+    function typeLines(lines, done) {
+      linesEl.innerHTML = ""; var i = 0, delay = reduceMotion ? 30 : 620;
+      (function next() {
+        if (i >= lines.length) { if (done) timers.push(setTimeout(done, reduceMotion ? 30 : 520)); return; }
+        var d = document.createElement("div"); d.className = "agent-line"; d.innerHTML = lines[i]; linesEl.appendChild(d);
+        i++; timers.push(setTimeout(next, delay));
+      })();
+    }
+    function run() {
+      clearTimers();
+      consoleEl.classList.remove("hide"); proofcard.classList.remove("show");
+      var score = 90 + Math.floor(rnd() * 10);
+      typeLines([
+        "> booting <b>nitin.agent</b> ...",
+        "> sourcing the candidate ... <span class='ok'>done</span>",
+        "> screening 12 papers, 4 companies, 3 ventures ... <span class='ok'>done</span>",
+        "> scoring against the role ... <b>" + score + "/100</b>",
+        "> writing the ProofCard <span class='cursor'>_</span>"
+      ], function () { reveal(score); });
+    }
+    function reveal(score) {
+      document.getElementById("pcVerdict").textContent = pick(VERDICTS);
+      document.getElementById("pcNote").textContent = '"' + pick(NOTES) + '"';
+      document.getElementById("pcTraits").innerHTML = shuffle(TRAITS).slice(0, 4).map(function (t) {
+        return '<li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>' + t + '</li>';
+      }).join("");
+      var num = document.getElementById("pcScoreNum"), ring = document.getElementById("pcRing");
+      var circ = 2 * Math.PI * 52; if (ring) { ring.style.strokeDasharray = circ; ring.style.strokeDashoffset = circ; }
+      if (num) num.textContent = "0";
+      consoleEl.classList.add("hide"); proofcard.classList.add("show");
+      if (window.__agentBurst) window.__agentBurst();
+      confettiBurst();
+      if (reduceMotion) { if (num) num.textContent = score; if (ring) ring.style.strokeDashoffset = circ * (1 - score / 100); return; }
+      var start = null;
+      (function step(ts) {
+        if (start === null) start = ts; var p = Math.min((ts - start) / 1100, 1), e = 1 - Math.pow(1 - p, 3);
+        if (num) num.textContent = Math.round(e * score);
+        if (ring) ring.style.strokeDashoffset = circ * (1 - e * score / 100);
+        if (p < 1) requestAnimationFrame(step);
+      })(0);
+    }
+    function confettiBurst() {
+      if (!confetti || reduceMotion || !confetti.getContext) return;
+      var ctx = confetti.getContext("2d");
+      var W = confetti.width = window.innerWidth, H = confetti.height = window.innerHeight;
+      var colors = ["#8b7bff", "#7c6cff", "#18d3c6", "#35e0a8", "#c084fc"], parts = [];
+      for (var i = 0; i < 150; i++) parts.push({ x: W / 2 + (rnd() - 0.5) * 220, y: H / 2, vx: (rnd() - 0.5) * 17, vy: (rnd() - 1) * 15 - 4, g: 0.34 + rnd() * 0.22, r: 3 + rnd() * 4, c: colors[Math.floor(rnd() * colors.length)], rot: rnd() * 6, vr: (rnd() - 0.5) * 0.4, life: 0 });
+      var max = 150;
+      (function frame() {
+        ctx.clearRect(0, 0, W, H); var alive = false;
+        for (var i = 0; i < parts.length; i++) {
+          var p = parts[i]; p.life++; if (p.life > max) continue; alive = true;
+          p.vy += p.g; p.x += p.vx; p.y += p.vy; p.vx *= 0.99; p.rot += p.vr;
+          ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.globalAlpha = Math.max(0, 1 - p.life / max);
+          ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * 1.6); ctx.restore();
+        }
+        if (alive) requestAnimationFrame(frame); else ctx.clearRect(0, 0, W, H);
+      })();
+    }
+    function open() {
+      overlay.classList.add("open"); overlay.setAttribute("aria-hidden", "false");
+      document.body.classList.add("no-scroll"); if (window.__lenis) window.__lenis.stop();
+      if (closeBtn) closeBtn.focus(); run();
+    }
+    function close() {
+      clearTimers();
+      overlay.classList.remove("open"); overlay.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("no-scroll"); if (window.__lenis) window.__lenis.start();
+      if (fab && fab.focus) fab.focus();
+    }
+    fab.addEventListener("click", open);
+    if (closeBtn) closeBtn.addEventListener("click", close);
+    if (backdrop) backdrop.addEventListener("click", close);
+    if (againBtn) againBtn.addEventListener("click", run);
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && overlay.classList.contains("open")) close(); });
+    if (hireBtn) hireBtn.addEventListener("click", function (e) {
+      e.preventDefault(); close();
+      timers.push(setTimeout(function () {
+        var t = document.getElementById("contact"); if (!t) return;
+        if (window.__lenis) window.__lenis.scrollTo(t, { offset: -70 });
+        else window.scrollTo({ top: t.getBoundingClientRect().top + window.scrollY - 70, behavior: reduceMotion ? "auto" : "smooth" });
+      }, 120));
+    });
+  })();
+
   /* ---------- Particle constellation background ---------- */
   var canvas = document.getElementById("bgCanvas");
   if (canvas && canvas.getContext) {
@@ -606,13 +716,14 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    var pos = geo.attributes.position, ppos = pgeo.attributes.position, t = 0;
+    var pos = geo.attributes.position, ppos = pgeo.attributes.position, t = 0, burst = 0;
+    window.__agentBurst = function () { burst = 1.1; };
     function animate() {
       t += 0.008;
       for (var i = 0; i < orig.length; i += 3) {
         var ox = orig[i], oy = orig[i + 1], oz = orig[i + 2];
         var n = Math.sin(ox * 0.8 + t) * Math.cos(oy * 0.8 + t * 0.7) * Math.sin(oz * 0.8 + t * 0.5);
-        var f = 1 + n * 0.13;
+        var f = 1 + n * (0.13 + burst * 0.65);
         pos.array[i] = ox * f; pos.array[i + 1] = oy * f; pos.array[i + 2] = oz * f;
         ppos.array[i] = ox * f; ppos.array[i + 1] = oy * f; ppos.array[i + 2] = oz * f;
       }
@@ -623,6 +734,9 @@
       camera.position.y += (-mY * 5 - camera.position.y) * 0.04;
       camera.lookAt(0, 0, 0);
       group.position.y = (window.scrollY || 0) * 0.006;
+      group.rotation.y += burst * 0.05;
+      group.scale.setScalar(1 + burst * 0.22);
+      burst *= 0.93;
       renderer.render(scene, camera);
       requestAnimationFrame(animate);
     }
