@@ -786,17 +786,18 @@ html[data-theme="light"] .ex-backdrop { background: rgba(40, 40, 70, 0.28); }
   transition: transform 0.3s var(--ease), border-color 0.3s, background 0.3s, color 0.3s;
 }
 .fab:hover { transform: translateY(-2px) scale(1.06); border-color: var(--accent); background: var(--accent-soft); }
-.fab-ico { display: grid; place-items: center; }
+.fab-ico { display: grid; place-items: center; line-height: 0; }
 .fab-ico svg { width: 22px; height: 22px; display: block; }
-.fab-tip {
+.fab::after {
+  content: attr(data-tip);
   position: absolute; right: calc(100% + 12px); top: 50%; transform: translateY(-50%) translateX(6px);
   white-space: nowrap; padding: 7px 13px; border-radius: 100px; background: var(--bg-2);
   border: 1px solid var(--border); color: var(--text); font-size: 0.8rem; font-weight: 500;
   opacity: 0; pointer-events: none; box-shadow: var(--shadow);
   transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
 }
-.fab:hover .fab-tip { opacity: 1; transform: translateY(-50%) translateX(0); }
-@media (max-width: 620px) { .fab { width: 50px; height: 50px; } .fab-tip { display: none; } }
+.fab:hover::after { opacity: 1; transform: translateY(-50%) translateX(0); }
+@media (max-width: 620px) { .fab { width: 50px; height: 50px; } .fab::after { display: none; } }
 
 .agent-overlay { position: fixed; inset: 0; z-index: 400; display: flex; align-items: center; justify-content: center; padding: 24px; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.4s var(--ease), visibility 0.4s; }
 .agent-overlay.open { opacity: 1; visibility: visible; pointer-events: auto; }
