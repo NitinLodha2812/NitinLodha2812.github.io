@@ -771,3 +771,6 @@ html[data-theme="light"] .ex-backdrop { background: rgba(40, 40, 70, 0.28); }
 
 /* Book chapter publication badge */
 .pub-venue.book { background: rgba(224,163,94,0.14); color: #e0a35e; }
+
+/* Decorative overlays must never intercept clicks (was blocking venture links) */
+.venture::before, .ex-tile::before, .feat-card::before, .contact-inner::before { pointer-events: none; }
