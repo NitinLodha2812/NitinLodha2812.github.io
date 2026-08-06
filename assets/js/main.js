@@ -650,7 +650,7 @@
 
   /* ---------- 3D interactive object (Three.js, guarded enhancement) ---------- */
   function initWebGL() {
-    if (reduceMotion || isTouch) return; // 2D constellation stays as the mobile / reduced-motion background
+    if (reduceMotion) return; // 2D constellation stays as the reduced-motion background; 3D runs on mobile too
     var cnv = document.getElementById("webglCanvas");
     if (!cnv) return;
     var s = document.createElement("script");
@@ -661,62 +661,91 @@
   }
   function buildScene(cnv) {
     var THREE = window.THREE;
-    var renderer = new THREE.WebGLRenderer({ canvas: cnv, alpha: true, antialias: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    var mobile = isTouch || window.innerWidth < 760;
+    var renderer = new THREE.WebGLRenderer({ canvas: cnv, alpha: true, antialias: !mobile, powerPreference: "high-performance" });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, mobile ? 1.5 : 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
     var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-    camera.position.z = 18;
+    var camera = new THREE.PerspectiveCamera(62, window.innerWidth / window.innerHeight, 0.1, 240);
+    camera.position.set(0, 4.6, 22);
 
     function themeColors() {
       var light = root.getAttribute("data-theme") === "light";
-      return { a: light ? 0x6146f0 : 0x8b7bff, b: light ? 0x06b0a4 : 0x18d3c6 };
+      return {
+        core: light ? 0x6146f0 : 0x8b7bff, node: light ? 0x06b0a4 : 0x18d3c6,
+        star: light ? 0x7a6cff : 0xc3c4ff, grid: light ? 0x9aa0e6 : 0x4b40a6,
+        fog: light ? 0xf4f4f8 : 0x08080c
+      };
     }
     var tc = themeColors();
-    var group = new THREE.Group(); scene.add(group);
-    group.position.x = 4.6; // sit behind the portrait side, clear of the headline text
+    scene.fog = new THREE.FogExp2(tc.fog, 0.016);
 
-    var geo = new THREE.IcosahedronGeometry(6.2, 3);
+    // Starfield (BufferGeometry, single draw call) drifting toward the camera
+    var STAR = mobile ? 900 : 2400, spread = 130;
+    var sgeo = new THREE.BufferGeometry(), sp = new Float32Array(STAR * 3);
+    for (var s = 0; s < STAR; s++) { sp[s * 3] = (Math.random() - 0.5) * spread; sp[s * 3 + 1] = (Math.random() - 0.5) * spread; sp[s * 3 + 2] = (Math.random() - 0.5) * spread; }
+    sgeo.setAttribute("position", new THREE.BufferAttribute(sp, 3));
+    var smat = new THREE.PointsMaterial({ color: tc.star, size: mobile ? 0.3 : 0.24, transparent: true, opacity: 0.9, sizeAttenuation: true, fog: true });
+    var stars = new THREE.Points(sgeo, smat); scene.add(stars);
+
+    // Perspective tech grid (floor + faint ceiling) that scrolls toward the camera
+    function makeGrid(size, div, color, y, op) {
+      var half = size / 2, step = size / div, v = [];
+      for (var k = 0; k <= div; k++) { var q = -half + k * step; v.push(-half, 0, q, half, 0, q); v.push(q, 0, -half, q, 0, half); }
+      var g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+      var m = new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: op, fog: true });
+      var mesh = new THREE.LineSegments(g, m); mesh.position.y = y; scene.add(mesh);
+      return { mesh: mesh, mat: m, step: step };
+    }
+    var gsize = 180, gdiv = mobile ? 36 : 60;
+    var floor = makeGrid(gsize, gdiv, tc.grid, -7, 0.6);
+    var ceil = makeGrid(gsize, gdiv, tc.grid, 17, 0.14);
+
+    // Morphing core, offset right so it clears the headline text
+    var group = new THREE.Group(); scene.add(group); group.position.x = 5;
+    var geo = new THREE.IcosahedronGeometry(5.6, mobile ? 2 : 3);
     var orig = geo.attributes.position.array.slice(0);
-    var mat = new THREE.MeshBasicMaterial({ color: tc.a, wireframe: true, transparent: true, opacity: 0.26 });
+    var mat = new THREE.MeshBasicMaterial({ color: tc.core, wireframe: true, transparent: true, opacity: 0.28 });
     var mesh = new THREE.Mesh(geo, mat); group.add(mesh);
-
-    var pgeo = new THREE.BufferGeometry();
-    pgeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(orig), 3));
-    var pmat = new THREE.PointsMaterial({ color: tc.b, size: 0.13, transparent: true, opacity: 0.85 });
+    var pgeo = new THREE.BufferGeometry(); pgeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(orig), 3));
+    var pmat = new THREE.PointsMaterial({ color: tc.node, size: 0.12, transparent: true, opacity: 0.9 });
     var points = new THREE.Points(pgeo, pmat); group.add(points);
-
-    // counter rotating inner core for depth
-    var geo2 = new THREE.IcosahedronGeometry(3.5, 1);
-    var mat2 = new THREE.MeshBasicMaterial({ color: tc.b, wireframe: true, transparent: true, opacity: 0.16 });
+    var geo2 = new THREE.IcosahedronGeometry(3.2, 1);
+    var mat2 = new THREE.MeshBasicMaterial({ color: tc.node, wireframe: true, transparent: true, opacity: 0.16 });
     var mesh2 = new THREE.Mesh(geo2, mat2); group.add(mesh2);
 
-    window.__recolorWebgl = function () { var c = themeColors(); mat.color.setHex(c.a); pmat.color.setHex(c.b); mat2.color.setHex(c.b); };
+    window.__recolorWebgl = function () {
+      var c = themeColors();
+      mat.color.setHex(c.core); pmat.color.setHex(c.node); mat2.color.setHex(c.node);
+      smat.color.setHex(c.star); floor.mat.color.setHex(c.grid); ceil.mat.color.setHex(c.grid);
+      if (scene.fog) scene.fog.color.setHex(c.fog);
+    };
 
     var mX = 0, mY = 0;
     window.addEventListener("mousemove", function (e) { mX = e.clientX / window.innerWidth - 0.5; mY = e.clientY / window.innerHeight - 0.5; });
-
-    // drag anywhere on empty background to spin the object, with inertia
-    var dvx = 0, dvy = 0, dragging = false, lastX = 0, lastY = 0;
-    function draggableTarget(t) { return !(t && t.closest && t.closest("a,button,input,textarea,[data-cursor],[data-tilt],.ex-tile,.fun-chip,.skill-chip,.pub")); }
-    window.addEventListener("pointerdown", function (e) {
-      if (e.button !== 0 || !draggableTarget(e.target)) return;
-      dragging = true; lastX = e.clientX; lastY = e.clientY; document.body.style.userSelect = "none";
-      var dh = document.getElementById("dragHint"); if (dh) dh.classList.add("hide");
-    });
-    window.addEventListener("pointermove", function (e) {
-      if (!dragging) return;
-      var dx = e.clientX - lastX, dy = e.clientY - lastY; lastX = e.clientX; lastY = e.clientY;
-      dvy = dx * 0.006; dvx = dy * 0.006;
-      group.rotation.y += dvy; group.rotation.x += dvx;
-    });
-    window.addEventListener("pointerup", function () { if (dragging) { dragging = false; document.body.style.userSelect = ""; } });
     window.addEventListener("resize", function () {
       camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    var pos = geo.attributes.position, ppos = pgeo.attributes.position, t = 0, burst = 0;
+    // Drag to spin, desktop only so it never fights touch scrolling
+    var dvx = 0, dvy = 0, dragging = false, lastX = 0, lastY = 0;
+    if (!isTouch) {
+      var draggableTarget = function (t) { return !(t && t.closest && t.closest("a,button,input,textarea,[data-cursor],[data-tilt],.ex-tile,.fun-chip,.skill-chip,.pub")); };
+      window.addEventListener("pointerdown", function (e) {
+        if (e.button !== 0 || !draggableTarget(e.target)) return;
+        dragging = true; lastX = e.clientX; lastY = e.clientY; document.body.style.userSelect = "none";
+        var dh = document.getElementById("dragHint"); if (dh) dh.classList.add("hide");
+      });
+      window.addEventListener("pointermove", function (e) {
+        if (!dragging) return;
+        var dx = e.clientX - lastX, dy = e.clientY - lastY; lastX = e.clientX; lastY = e.clientY;
+        dvy = dx * 0.006; dvx = dy * 0.006; group.rotation.y += dvy; group.rotation.x += dvx;
+      });
+      window.addEventListener("pointerup", function () { if (dragging) { dragging = false; document.body.style.userSelect = ""; } });
+    }
+
+    var pos = geo.attributes.position, ppos = pgeo.attributes.position, sposArr = sgeo.attributes.position.array, t = 0, burst = 0;
     window.__agentBurst = function () { burst = 1.1; };
     function animate() {
       t += 0.008;
@@ -730,13 +759,16 @@
       pos.needsUpdate = true; ppos.needsUpdate = true;
       if (!dragging) { group.rotation.y += 0.0016 + dvy; group.rotation.x += 0.0008 + dvx; dvy *= 0.94; dvx *= 0.94; }
       mesh2.rotation.y -= 0.004; mesh2.rotation.x -= 0.0022;
-      camera.position.x += (mX * 5 - camera.position.x) * 0.04;
-      camera.position.y += (-mY * 5 - camera.position.y) * 0.04;
-      camera.lookAt(0, 0, 0);
+      group.rotation.y += burst * 0.05; group.scale.setScalar(1 + burst * 0.22); burst *= 0.93;
+      // stars drift toward the camera and wrap
+      for (var j = 0; j < STAR; j++) { sposArr[j * 3 + 2] += 0.05; if (sposArr[j * 3 + 2] > 65) sposArr[j * 3 + 2] -= 130; }
+      sgeo.attributes.position.needsUpdate = true; stars.rotation.y += 0.0003;
+      floor.mesh.position.z = (floor.mesh.position.z + 0.06) % floor.step;
+      ceil.mesh.position.z = (ceil.mesh.position.z + 0.05) % ceil.step;
+      camera.position.x += (mX * 4 - camera.position.x) * 0.03;
+      camera.position.y += ((4.6 - mY * 3) - camera.position.y) * 0.03;
+      camera.lookAt(0, 0.5, 0);
       group.position.y = (window.scrollY || 0) * 0.006;
-      group.rotation.y += burst * 0.05;
-      group.scale.setScalar(1 + burst * 0.22);
-      burst *= 0.93;
       renderer.render(scene, camera);
       requestAnimationFrame(animate);
     }
