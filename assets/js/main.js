@@ -685,7 +685,7 @@
     var sgeo = new THREE.BufferGeometry(), sp = new Float32Array(STAR * 3);
     for (var s = 0; s < STAR; s++) { sp[s * 3] = (Math.random() - 0.5) * spread; sp[s * 3 + 1] = (Math.random() - 0.5) * spread; sp[s * 3 + 2] = -115 + Math.random() * 127; }
     sgeo.setAttribute("position", new THREE.BufferAttribute(sp, 3));
-    var smat = new THREE.PointsMaterial({ color: tc.star, size: mobile ? 0.24 : 0.2, transparent: true, opacity: 0.85, sizeAttenuation: true, fog: true });
+    var smat = new THREE.PointsMaterial({ color: tc.star, size: mobile ? 2.2 : 1.8, transparent: true, opacity: 0.85, sizeAttenuation: false, fog: true });
     var stars = new THREE.Points(sgeo, smat); scene.add(stars);
 
     // Morphing core, offset right so it clears the headline text
