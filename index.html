@@ -229,7 +229,7 @@
               <ul>
                 <li>Building automated recruiting pipelines that streamline candidate sourcing, screening, and outreach with LLM driven agents, cutting manual effort across the hiring workflow.</li>
                 <li>Working hands on with Astro AI, an agent deployment platform, hosting production agents and contributing enhancements back to the platform itself.</li>
-                <li>Building Portage, a new product that takes a Postman Flow, built on the canvas or by describing it to Claude over MCP, and ships it to a live backend such as Postman, Astro, or n8n, generating all the deploy plumbing and picking the best destination automatically.</li>
+                <li>Building Portage, a new product that takes a Postman Flow, built on the canvas or by describing it to an LLM over MCP, and ships it to a live backend such as Postman, Astro, or n8n, generating all the deploy plumbing and picking the best destination automatically.</li>
               </ul>
               <div class="tl-tags"><span class="chip">Agentic AI</span><span class="chip">Python</span><span class="chip">Astro AI</span><span class="chip">Postman Flows</span></div>
             </div>
@@ -320,7 +320,7 @@
             </div>
             <h3>Portage</h3>
             <div class="tagline">Build a flow once, ship it anywhere</div>
-            <p>You build the logic visually in Postman Flows, or just describe it to Claude, and Portage turns it into a live, running app on whatever backend fits, no plumbing required. Think of it as a forwarding desk for flows: it reads what you built, works out what it needs, generates the files each backend wants, and ships it. Flows builds the logic, Astro runs the agent, and the flow itself never changes, so you can let Portage pick the best destination or point it somewhere new yourself.</p>
+            <p>You build the logic visually in Postman Flows, or just describe it to an LLM, and Portage turns it into a live, running app on whatever backend fits, no plumbing required. Think of it as a forwarding desk for flows: it reads what you built, works out what it needs, generates the files each backend wants, and ships it. Flows builds the logic, Astro runs the agent, and the flow itself never changes, so you can let Portage pick the best destination or point it somewhere new yourself.</p>
             <div class="venture-foot">
               <div class="venture-tags"><span class="chip">TypeScript</span><span class="chip">MCP</span><span class="chip">Deploy</span></div>
               <span class="venture-soon" data-cursor><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Under wraps, coming soon</span>
@@ -349,8 +349,8 @@
               </div>
               <h3>Recruiter Agent</h3>
               <div class="tagline">Recruiting copilot, chat in, ranked shortlist out</div>
-              <p>An agent that ranks a role's applicants or sources across an entire candidate database. It embeds every candidate into a persistent Qdrant index, retrieves the top matches by similarity, then deep scores them with Claude using scoring weights that adapt per job description. Email and scheduling happen in the same window.</p>
-              <div class="project-tags"><span class="chip">Claude</span><span class="chip">FastAPI</span><span class="chip">Qdrant</span><span class="chip">RAG</span><span class="chip">Docker</span></div>
+              <p>An agent that ranks a role's applicants or sources across an entire candidate database. It embeds every candidate into a persistent Qdrant index, retrieves the top matches by similarity, then deep scores them with an LLM using scoring weights that adapt per job description. Email and scheduling happen in the same window.</p>
+              <div class="project-tags"><span class="chip">LLM</span><span class="chip">FastAPI</span><span class="chip">Qdrant</span><span class="chip">RAG</span><span class="chip">Docker</span></div>
             </div>
             <a href="https://www.neural-ai.tech/landing" target="_blank" rel="noopener" class="feat-link" aria-label="Visit Neural AI" data-cursor><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
           </article>
@@ -382,8 +382,8 @@
           <article class="project reveal d1" data-tilt>
             <span class="project-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 10h.01M12 10h.01M16 10h.01M9 16c.8.5 1.9.8 3 .8s2.2-.3 3-.8"/><rect x="3" y="4" width="18" height="14" rx="3"/><path d="M12 18v3"/></svg></span>
             <h3>AI HR Chatbot <span class="proj-badge">Internal at Postman</span></h3>
-            <p>A Streamlit chatbot that answers free form HR questions by pulling live Workday data and applying company policy. A Claude agent selects read only tools, queries over OAuth2 REST, and lets you switch models from the sidebar. Built internally at Postman, so the code stays private.</p>
-            <div class="project-tags"><span class="chip">Claude</span><span class="chip">Streamlit</span><span class="chip">Tool Use</span></div>
+            <p>A Streamlit chatbot that answers free form HR questions by pulling live Workday data and applying company policy. An LLM agent selects read only tools, queries over OAuth2 REST, and lets you switch models from the sidebar. Built internally at Postman, so the code stays private.</p>
+            <div class="project-tags"><span class="chip">LLM</span><span class="chip">Streamlit</span><span class="chip">Tool Use</span></div>
           </article>
 
           <article class="project reveal d2" data-tilt>
@@ -511,7 +511,7 @@
           <div class="skill-group featured-group reveal" data-tilt>
             <h3><span class="sg-icon g"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V4H8M2 14h2M20 14h2M9 13v2M15 13v2"/></svg></span>Agentic AI <span class="sg-tag mono">in demand</span></h3>
             <div class="skill-chips">
-              <span class="skill-chip hot">Agentic AI</span><span class="skill-chip hot">AI Agents</span><span class="skill-chip hot">Multi-agent Systems</span><span class="skill-chip hot">LLM Orchestration</span><span class="skill-chip hot">RAG</span><span class="skill-chip hot">Vector Search</span><span class="skill-chip hot">Model Context Protocol</span><span class="skill-chip hot">Prompt Engineering</span><span class="skill-chip hot">Claude</span><span class="skill-chip hot">Gemini</span><span class="skill-chip hot">Qdrant</span><span class="skill-chip hot">LLM Evals</span>
+              <span class="skill-chip hot">Agentic AI</span><span class="skill-chip hot">AI Agents</span><span class="skill-chip hot">Multi-agent Systems</span><span class="skill-chip hot">LLM Orchestration</span><span class="skill-chip hot">RAG</span><span class="skill-chip hot">Vector Search</span><span class="skill-chip hot">Model Context Protocol</span><span class="skill-chip hot">Prompt Engineering</span><span class="skill-chip hot">LLM APIs</span><span class="skill-chip hot">Gemini</span><span class="skill-chip hot">Qdrant</span><span class="skill-chip hot">LLM Evals</span>
             </div>
           </div>
           <div class="skill-group reveal d1" data-tilt>
