@@ -899,3 +899,9 @@ html[data-theme="light"] .agent-backdrop { background: rgba(40,40,70,0.3); }
   .logos-inner { gap: 18px 22px; }
   .logos-label { flex-basis: 100%; text-align: center; }
 }
+
+/* The status pill now carries a longer line than the old job title, so it
+   tightens slightly on narrow screens to stay on one line. */
+@media (max-width: 620px) {
+  .hero-status { font-size: 0.72rem; padding: 7px 13px; letter-spacing: -0.01em; }
+}
