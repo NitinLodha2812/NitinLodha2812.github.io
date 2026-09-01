@@ -276,7 +276,7 @@
       "I built an agent that ranks candidates with an LLM and a Qdrant vector index.",
       "I ported a MATLAB medical research tool into a full web app.",
       "I can drop you into a movie scene using Stable Diffusion.",
-      "I built a control plane that decides an agent's action in about a tenth of a millisecond.",
+      "I am building Corda, which proves an AI workflow is ready before it runs the business.",
       "I have shipped work at Postman, Ericsson, Samsung, and Fiserv.",
       "I cut a team's feature turnaround time by 30 percent at Ericsson.",
       "I move between Philadelphia and Cupertino.",
@@ -328,9 +328,9 @@
       agents: {
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V4H8M2 14h2M20 14h2M9 13v2M15 13v2"/></svg>',
         kicker: "The problem I keep coming back to", title: "AI Agents and Guardrails",
-        body: "I build autonomous agents and the systems that keep them honest. A recruiting copilot at Postman that ranks candidates with an LLM and a Qdrant vector index. An HR chatbot that answers Workday questions with read only tools. And Corda AI, my venture, a control plane that decides allow, deny, or hold for a human in about a tenth of a millisecond, then keeps a tamper evident record.",
-        points: ["Recruiter Agent: chat in, ranked shortlist out", "Corda AI: runtime permissions, approvals, and audit", "Agents that ask a human when they should"],
-        tags: ["Agentic AI", "LLM", "Qdrant", "MCP"], links: [{ href: "https://cordaai.co/", label: "Visit Corda AI", primary: true }]
+        body: "I build autonomous agents and the systems that keep them honest. A recruiting copilot at Postman that ranks candidates with an LLM and a Qdrant vector index. An HR chatbot that answers Workday questions with read only tools. And Corda, my venture, which proves whether an AI workflow is ready to run a business process before it is handed real authority.",
+        points: ["Recruiter Agent: chat in, ranked shortlist out", "Corda: pilot to production for enterprise AI workflows", "Agents that ask a human when they should"],
+        tags: ["Agentic AI", "LLM", "Qdrant", "MCP"], links: [{ href: "https://cordaai.co/", label: "Visit Corda", primary: true }]
       },
       research: {
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
@@ -363,9 +363,9 @@
       next: {
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>',
         kicker: "Where I am headed", title: "What is next",
-        body: "I want to keep building AI agents that people can actually trust, ship Corda AI to teams running agents in production, and turn more research into products that hold up in the real world. If you are working on something hard in agents, full stack, or ML, I would love to talk.",
+        body: "I want to keep building AI agents that people can actually trust, ship Corda to teams trying to move AI pilots into production, and turn more research into products that hold up in the real world. If you are working on something hard in agents, full stack, or ML, I would love to talk.",
         points: ["Trustworthy, auditable AI agents", "Research that becomes real products", "Always up for a hard problem"],
-        tags: ["Agents", "Guardrails", "Products"], links: [{ href: "https://cordaai.co/", label: "Visit Corda AI", primary: true }, { href: "#contact", label: "Get in touch" }]
+        tags: ["Agents", "Guardrails", "Products"], links: [{ href: "https://cordaai.co/", label: "Visit Corda", primary: true }, { href: "#contact", label: "Get in touch" }]
       }
     };
 

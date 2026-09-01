@@ -20,8 +20,13 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect x='1.5' y='1.5' width='37' height='37' rx='11' fill='%230d0d14' stroke='%237c6cff' stroke-width='1.6'/%3E%3Cpath d='M10 27.5 L10 12.5 L19 27.5 L19 12.5' fill='none' stroke='%237c6cff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M23.5 12.5 L23.5 27.5 L31 27.5' fill='none' stroke='%2318d3c6' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
 </head>
 <body>
-  <!-- Shared gradient for the monogram -->
-  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="nlGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b7bff"/><stop offset="1" stop-color="#18d3c6"/></linearGradient></defs></svg>
+  <!-- Shared gradient for the monogram, plus the company marks.
+       Marks are inlined so the page makes no extra requests. Sources:
+       Simple Icons (CC0) for Postman, Ericsson, Samsung, IEEE; Wikimedia
+       Commons for Fiserv. Each viewBox is cropped to the mark's measured
+       bounding box so the wordmarks keep their true aspect ratio. All are
+       trademarks of their owners, shown only to say where the work happened. -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="nlGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b7bff"/><stop offset="1" stop-color="#18d3c6"/></linearGradient><symbol id="lg-postman" viewBox="0 0 24 24"><path d="M13.527.099C6.955-.744.942 3.9.099 10.473c-.843 6.572 3.8 12.584 10.373 13.428 6.573.843 12.587-3.801 13.428-10.374C24.744 6.955 20.101.943 13.527.099zm2.471 7.485a.855.855 0 0 0-.593.25l-4.453 4.453-.307-.307-.643-.643c4.389-4.376 5.18-4.418 5.996-3.753zm-4.863 4.861l4.44-4.44a.62.62 0 1 1 .847.903l-4.699 4.125-.588-.588zm.33.694l-1.1.238a.06.06 0 0 1-.067-.032.06.06 0 0 1 .01-.073l.645-.645.512.512zm-2.803-.459l1.172-1.172.879.878-1.979.426a.074.074 0 0 1-.085-.039.072.072 0 0 1 .013-.093zm-3.646 6.058a.076.076 0 0 1-.069-.083.077.077 0 0 1 .022-.046h.002l.946-.946 1.222 1.222-2.123-.147zm2.425-1.256a.228.228 0 0 0-.117.256l.203.865a.125.125 0 0 1-.211.117h-.003l-.934-.934-.294-.295 3.762-3.758 1.82-.393.874.874c-1.255 1.102-2.971 2.201-5.1 3.268zm5.279-3.428h-.002l-.839-.839 4.699-4.125a.952.952 0 0 0 .119-.127c-.148 1.345-2.029 3.245-3.977 5.091zm3.657-6.46l-.003-.002a1.822 1.822 0 0 1 2.459-2.684l-1.61 1.613a.119.119 0 0 0 0 .169l1.247 1.247a1.817 1.817 0 0 1-2.093-.343zm2.578 0a1.714 1.714 0 0 1-.271.218h-.001l-1.207-1.207 1.533-1.533c.661.72.637 1.832-.054 2.522zM18.855 6.05a.143.143 0 0 0-.053.157.416.416 0 0 1-.053.45.14.14 0 0 0 .023.197.141.141 0 0 0 .084.03.14.14 0 0 0 .106-.05.691.691 0 0 0 .087-.751.138.138 0 0 0-.194-.033z"></path></symbol><symbol id="lg-ericsson" viewBox="3.12 0 17.77 24"><path d="M20.76 1.593A2.36 2.36 0 0 0 19.572.225c-.54-.27-1.188-.336-2.256.02L5.187 4.29c-1.068.357-1.548.795-1.818 1.338a2.36 2.36 0 0 0 1.059 3.174c.54.27 1.188.336 2.256-.021l12.129-4.044c1.068-.354 1.548-.795 1.818-1.338a2.35 2.35 0 0 0 .13-1.806zm0 7.485a2.36 2.36 0 0 0-1.188-1.368c-.54-.27-1.188-.336-2.256.021L5.187 11.775c-1.068.357-1.548.795-1.818 1.338a2.36 2.36 0 0 0 1.059 3.174c.54.27 1.188.336 2.256-.021l12.129-4.041c1.068-.357 1.548-.795 1.818-1.341a2.35 2.35 0 0 0 .13-1.806zm0 7.488a2.36 2.36 0 0 0-1.188-1.368c-.54-.27-1.188-.336-2.256.021L5.187 19.263c-1.068.357-1.548.795-1.818 1.338a2.36 2.36 0 0 0 1.059 3.174c.54.27 1.188.336 2.256-.02l12.129-4.045c1.068-.354 1.548-.795 1.818-1.338a2.35 2.35 0 0 0 .13-1.806z"></path></symbol><symbol id="lg-samsung" viewBox="0 10.17 24 3.67"><path d="M19.8166 10.2808l.0459 2.6934h-.023l-.7793-2.6934h-1.2837v3.3925h.8481l-.0458-2.785h.023l.8366 2.785h1.2264v-3.3925zm-16.149 0l-.6418 3.427h.9284l.4699-3.1175h.0229l.4585 3.1174h.9169l-.6304-3.4269zm5.1805 0l-.424 2.6132h-.023l-.424-2.6132H6.5788l-.0688 3.427h.8596l.023-3.0832h.0114l.573 3.0831h.8711l.5731-3.083h.023l.0228 3.083h.8596l-.0802-3.4269zm-7.2664 2.4527c.0343.0802.0229.1949.0114.2522-.0229.1146-.1031.2292-.3324.2292-.2177 0-.3438-.126-.3438-.3095v-.3323H0v.2636c0 .7679.6074.9971 1.2493.9971.6189 0 1.1346-.2178 1.2149-.7794.0458-.298.0114-.4928 0-.5616-.1605-.722-1.467-.9283-1.5588-1.3295-.0114-.0688-.0114-.1375 0-.1834.023-.1146.1032-.2292.3095-.2292.2063 0 .321.126.321.3095v.2063h.8595v-.2407c0-.745-.6762-.8596-1.1576-.8596-.6074 0-1.1117.2063-1.2034.7564-.023.149-.0344.2866.0114.4585.1376.7106 1.364.9169 1.5358 1.3524m11.152 0c.0343.0803.0228.1834.0114.2522-.023.1146-.1032.2292-.3324.2292-.2178 0-.3438-.126-.3438-.3095v-.3323h-.917v.2636c0 .7564.596.9857 1.2379.9857.6189 0 1.1232-.2063 1.2034-.7794.0459-.298.0115-.4814 0-.5616-.1375-.7106-1.4327-.9284-1.5243-1.318-.0115-.0688-.0115-.1376 0-.1835.0229-.1146.1031-.2292.3094-.2292.1948 0 .321.126.321.3095v.2063h.848v-.2407c0-.745-.6647-.8596-1.146-.8596-.6075 0-1.1004.1948-1.192.7564-.023.149-.023.2866.0114.4585.1376.7106 1.341.9054 1.513 1.3524m2.8882.4585c.2407 0 .3094-.1605.3323-.2522.0115-.0343.0115-.0917.0115-.126v-2.533h.871v2.4642c0 .0688 0 .1948-.0114.2292-.0573.6419-.5616.8482-1.192.8482-.6303 0-1.1346-.2063-1.192-.8482 0-.0344-.0114-.1604-.0114-.2292v-2.4642h.871v2.533c0 .0458 0 .0916.0115.126 0 .0917.0688.2522.3095.2522m7.1518-.0344c.2522 0 .3324-.1605.3553-.2522.0115-.0343.0115-.0917.0115-.126v-.4929h-.3553v-.5043H24v.917c0 .0687 0 .1145-.0115.2292-.0573.6303-.596.8481-1.2034.8481-.6075 0-1.1461-.2178-1.2034-.8481-.0115-.1147-.0115-.1605-.0115-.2293v-1.444c0-.0574.0115-.172.0115-.2293.0802-.6419.596-.8482 1.2034-.8482s1.1347.2063 1.2034.8482c.0115.1031.0115.2292.0115.2292v.1146h-.8596v-.1948s0-.0803-.0115-.1261c-.0114-.0802-.0802-.2521-.3438-.2521-.2521 0-.321.1604-.3438.2521-.0115.0458-.0115.1032-.0115.1605v1.5702c0 .0458 0 .0916.0115.126 0 .0917.0917.2522.3323.2522"></path></symbol><symbol id="lg-fiserv" viewBox="3.54 3.62 885.83 444.88"><g transform="translate(-9.7433497,-101.19694)"><g transform="matrix(8.338959,0,0,8.338959,-2402.8716,-2801.6787)"><path d="m 395.97089,394.64183 -6.78,0 0,6.7825 6.78,0 0,-6.7825 z"></path><path d="m 375.43089,364.44183 4.03875,30.315 4.03375,-30.315 6.29375,0 -5.88625,36.9825 -8.94875,0 -5.82375,-36.9825 6.2925,0 z"></path><path d="m 293.23214,364.44183 -3.48875,0 0,4.915 3.48875,0 0,32.0675 6.13375,0 0,-32.0675 4.30875,0 0,-4.915 -4.30875,0 0,-7.5175 c 0,-1.09625 0.2275,-1.93625 0.75625,-2.50875 0.53125,-0.57125 1.34625,-0.84125 2.44625,-0.84125 l 1.105,0 0,-5.03 -2.21875,0 c -2.72625,0 -5.35125,0.57625 -6.60125,1.7625 -1.2475,1.185 -1.62125,3.02625 -1.62125,5.65125 l 0,8.48375 z"></path><path d="m 305.58964,401.42433 6.14875,0 0,-36.9825 -6.14875,0 0,36.9825 z"></path><path d="m 340.12714,385.02683 12.8175,0 0,-11.3975 c -0.0163,-6.81875 -3.295,-9.61375 -9.50375,-9.61375 -6.46,0 -9.48625,2.78875 -9.48625,9.6575 l 0,18.73 c 0.0175,6.25 3.8025,9.48125 9.4825,9.48125 5.68,0 9.49125,-2.66 9.5075,-9.48125 l 0,-2.96125 -5.93875,0 0.007,3.51 c 0,2.5025 -0.9375,4.235 -3.4525,4.235 -2.51625,0 -3.43375,-1.7475 -3.43375,-4.23875 l 0,-7.92125 z m 0,-12.625 c 0,-2.08625 0.5425,-4.24625 3.41625,-4.24625 2.87375,0 3.4575,2.12875 3.4575,4.24375 l 0,7.64375 -6.87375,0 0,-7.64125 z"></path><path d="m 325.56339,380.39933 c -4.66375,-4.05125 -5.0275,-4.63625 -5.0275,-7.65375 0,-2.5725 0.22375,-4.1375 2.53375,-4.1375 2.3075,0 2.61,1.54625 2.61,4.16625 l 0,3.41375 5.925,0 0,-5.57 c -0.0188,-4.37375 -3.385,-6.59875 -8.67125,-6.59875 -5.19875,0 -8.59125,1.73125 -8.62,8.72625 -0.004,1.1875 10e-4,1.1875 0,0.72875 0.01,2.19875 0.02,5.6825 5.455,10.34625 l 1.5575,1.33375 c 4.00375,3.3775 4.44375,3.785 4.42375,7.80125 -0.002,2.475 -0.15375,4.35125 -2.7525,4.35125 -2.59875,0 -2.76125,-1.89 -2.76125,-3.0575 l 0,-4.73125 -6.22,0 0,4.8825 c 0,6.0075 3.90875,7.49375 8.97375,7.49375 5.06875,0 8.985,-1.5 8.985,-9.23125 l 0,-0.6425 c -0.0138,-5.4 -0.99125,-6.84875 -6.41125,-11.62125"></path><path d="m 361.17339,368.24933 0,-3.8075 -5.6025,0 0,36.98125 6.045,0 0,-25.7725 c -0.004,-1.9925 0.64625,-3.30375 1.77625,-4.07875 1.07,-0.7375 2.3875,-0.9875 4.06125,-1.01125 l 0,-6.5425 c -3.2075,0.065 -4.59,0.69875 -6.2175,4.09625 l -0.0625,0.135 z"></path></g></g></symbol><symbol id="lg-ieee" viewBox="0 8.5 24 7"><path d="M4.74 14.973h-.05v-.064h.04c.022 0 .051.002.051.03 0 .028-.015.034-.04.034zm.101-.03c0-.06-.04-.079-.109-.079h-.099v.265h.057v-.111h.027l.061.111h.068l-.069-.116c.036-.003.064-.02.064-.07zm-.11.243c-.098 0-.176-.076-.176-.19 0-.113.078-.188.176-.188.095 0 .177.075.177.188 0 .114-.082.19-.177.19zm-.247-.19c0 .156.116.247.247.247.13 0 .247-.09.247-.247a.238.238 0 0 0-.247-.246.239.239 0 0 0-.247.246zM3.35 12.61c-.02.374-.025.72-.052 1.096.148.013.315.026.473.003l-.047-1.046-.009-.05c-.12.005-.234.01-.365-.003zm-.926-1.051c-.182.091-.45.23-.421.48.04.136.187.224.304.28.647.286 1.506.295 2.19.083.168-.065.395-.16.426-.366-.002-.171-.183-.279-.313-.344v-.008a.575.575 0 0 1 .144-.039v-.004c-.228-.041-.45-.101-.671-.16.043.097.073.2.109.301.067-.021.135-.038.207-.047.117.045.284.11.3.256.014.137-.136.204-.23.26-.501.181-1.065.2-1.588.06-.144-.045-.353-.103-.37-.287.102-.242.367-.292.588-.351-.114-.073-.23-.138-.34-.22-.119.007-.227.059-.335.106zm1.107-1.46l-.064.208-.326.932c.082.008.183 0 .263.008v.008l-.048 1.054.008.01c.104.01.234.016.34-.002V12.3l-.042-1.022.006-.035.286-.004a46.727 46.727 0 0 1-.414-1.14zm-.15-.469c.239-.163.453.065.639.195.717.578 1.393 1.238 1.909 1.984.065.096.094.246.036.355-.134.223-.314.426-.485.633v.011c-.426.454-.876.92-1.363 1.305-.237.144-.455.46-.761.264a11.007 11.007 0 0 1-1.927-1.82c-.096-.149-.246-.271-.312-.44-.093-.23.112-.394.229-.566.576-.71 1.291-1.407 2.034-1.92zm.6-.678l-.266-.376c-.032-.02-.073-.052-.108-.062-.079-.034-.163.007-.227.056l-.48.624c-.769.953-1.68 1.843-2.673 2.525-.079.061-.195.121-.22.222-.026.091.022.166.078.223a13.061 13.061 0 0 1 2.234 1.94c.12.127.217.252.335.37.198.265.43.53.613.813.057.06.066.158.156.187.07.024.156.04.223 0l.066-.067a13.269 13.269 0 0 1 3.034-3.06c.117-.103.34-.142.343-.336a.308.308 0 0 0-.137-.226l-.02-.003c-.6-.408-1.159-.87-1.686-1.394l-.582-.609a16.595 16.595 0 0 1-.684-.827zm.039.672c.206.157.42.336.61.518l.034.02a10.122 10.122 0 0 1 1.405 1.592c.065.1.122.212.086.343-.133.332-.403.597-.639.887-.51.55-1.05 1.081-1.652 1.506-.122.086-.287.166-.433.097-.444-.232-.818-.613-1.207-.96-.45-.417-.902-.904-1.244-1.413a.417.417 0 0 1-.064-.253c.044-.176.165-.32.279-.469.403-.514.897-1.002 1.397-1.447.011-.012.032-.036.05-.047.215-.186.428-.35.652-.511.234-.182.529-.031.726.137zm15.942-.197H24v1.028h-2.569v1.094h2.364v1.028H21.43V13.7H24v1.028h-4.038zm-4.859 0h4.037v1.028h-2.57v1.094h2.363v1.028H16.57V13.7h2.569v1.028h-4.037zm-4.86 0h4.037v1.028h-2.57v1.094h2.365v1.028H11.71V13.7h2.57v1.028h-4.038zm-2.24 0h1.469v5.301H8.004Z"></path></symbol></defs></svg>
 
   <!-- Intro preloader -->
   <div class="intro" id="intro" aria-hidden="true">
@@ -146,6 +151,17 @@
       </div>
     </div>
 
+    <!-- Where the work happened -->
+    <div class="logos reveal">
+      <div class="container logos-inner">
+        <span class="logos-label">Shipped at</span>
+        <span class="brand-logo has-name" title="Postman"><svg class="lg-postman" role="img" aria-label="Postman"><use href="#lg-postman"/></svg><span>Postman</span></span>
+        <span class="brand-logo has-name" title="Ericsson"><svg class="lg-ericsson" role="img" aria-label="Ericsson"><use href="#lg-ericsson"/></svg><span>Ericsson</span></span>
+        <span class="brand-logo" title="Samsung"><svg class="lg-samsung" role="img" aria-label="Samsung"><use href="#lg-samsung"/></svg></span>
+        <span class="brand-logo" title="Fiserv"><svg class="lg-fiserv" role="img" aria-label="Fiserv"><use href="#lg-fiserv"/></svg></span>
+      </div>
+    </div>
+
     <!-- About (bento) -->
     <section id="about">
       <div class="container">
@@ -225,7 +241,7 @@
             <span class="tl-dot"></span>
             <div class="tl-card" data-tilt>
               <div class="tl-top"><div class="tl-role">AI Engineering Intern</div><div class="tl-date">May 2026 to Present</div></div>
-              <div class="tl-company">Postman <span class="place">/ Cupertino, CA</span></div>
+              <div class="tl-company"><span class="brand-logo" title="Postman"><svg class="lg-postman" role="img" aria-label="Postman"><use href="#lg-postman"/></svg></span>Postman <span class="place">/ Cupertino, CA</span></div>
               <ul>
                 <li>Building automated recruiting pipelines that streamline candidate sourcing, screening, and outreach with LLM driven agents, cutting manual effort across the hiring workflow.</li>
                 <li>Working hands on with Astro AI, an agent deployment platform, hosting production agents and contributing enhancements back to the platform itself.</li>
@@ -238,7 +254,7 @@
             <span class="tl-dot"></span>
             <div class="tl-card" data-tilt>
               <div class="tl-top"><div class="tl-role">Software Engineer</div><div class="tl-date">Jan 2023 to July 2025</div></div>
-              <div class="tl-company">Ericsson R&amp;D <span class="place">/ Chennai, India</span></div>
+              <div class="tl-company"><span class="brand-logo" title="Ericsson"><svg class="lg-ericsson" role="img" aria-label="Ericsson"><use href="#lg-ericsson"/></svg></span>Ericsson R&amp;D <span class="place">/ Chennai, India</span></div>
               <ul>
                 <li>Collaborated with the revenue management team to deliver more than 100 new features using Java and Angular, improving product functionality and client satisfaction.</li>
                 <li>Built an intelligent code generation system that analyzed use case patterns to produce and auto test customized code snippets, reducing turnaround time from 437 to 306 days, a 30 percent gain.</li>
@@ -252,7 +268,7 @@
             <span class="tl-dot"></span>
             <div class="tl-card" data-tilt>
               <div class="tl-top"><div class="tl-role">Research Intern</div><div class="tl-date">2021 to 2022</div></div>
-              <div class="tl-company">Samsung R&amp;D (PRISM) <span class="place">/ India</span></div>
+              <div class="tl-company"><span class="brand-logo" title="Samsung"><svg class="lg-samsung" role="img" aria-label="Samsung"><use href="#lg-samsung"/></svg></span><span class="sub">R&amp;D (PRISM)</span><span class="place">/ India</span></div>
               <ul>
                 <li>Researched Indian points of interest utterances and dataset expansion for natural language understanding.</li>
                 <li>Built a model for auto natural utterance creation that outperformed BERT and T5 on diversity of generated utterances.</li>
@@ -264,7 +280,7 @@
             <span class="tl-dot"></span>
             <div class="tl-card" data-tilt>
               <div class="tl-top"><div class="tl-role">Software Engineer Intern</div><div class="tl-date">July 2022 to Sept 2022</div></div>
-              <div class="tl-company">Fiserv <span class="place">/ Chennai, India</span></div>
+              <div class="tl-company"><span class="brand-logo" title="Fiserv"><svg class="lg-fiserv" role="img" aria-label="Fiserv"><use href="#lg-fiserv"/></svg></span><span class="place">/ Chennai, India</span></div>
               <ul>
                 <li>Used Splunk to analyze and categorize error and warning logs into a unified, filterable dashboard by host, time, log count, and region.</li>
                 <li>Reduced mean time to resolution by 25 percent, improving troubleshooting efficiency and system reliability.</li>
@@ -287,15 +303,15 @@
         <div class="ventures-grid">
           <article class="venture reveal" data-tilt>
             <div class="venture-head">
-              <span class="venture-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></span>
+              <span class="venture-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M6 21v-5M11 21v-9M16 21v-6M21 21V7"/><path d="m14 4 3-2 3 2"/></svg></span>
               <span class="venture-status live">My venture</span>
             </div>
-            <h3>Corda AI</h3>
-            <div class="tagline">Governance for enterprise AI agents</div>
-            <p>A control plane that sits between an AI agent and the tools it calls. It answers one question in about a tenth of a millisecond, allow, deny, or hold for a human, then writes a hash chained, tamper evident record of every decision and routes the hard calls to a person.</p>
+            <h3>Corda</h3>
+            <div class="tagline">Pilot to production for enterprise AI</div>
+            <p>Teams can build an AI workflow in a week and still not know whether it can be trusted to run a business process. Corda connects to a workflow you already have, benchmarks it against your own historical cases, runs it in shadow beside the human process, then widens its authority one stage at a time as the evidence holds.</p>
             <div class="venture-foot">
-              <div class="venture-tags"><span class="chip">TypeScript</span><span class="chip">Policy</span><span class="chip">Audit</span></div>
-              <a href="https://cordaai.co/" target="_blank" rel="noopener" class="venture-link" data-cursor>Visit Corda AI <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+              <div class="venture-tags"><span class="chip">Evals</span><span class="chip">Shadow Mode</span><span class="chip">Autonomy</span></div>
+              <a href="https://cordaai.co/" target="_blank" rel="noopener" class="venture-link" data-cursor>Visit Corda <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
             </div>
           </article>
 

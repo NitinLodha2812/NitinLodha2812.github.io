@@ -846,3 +846,56 @@ html[data-theme="light"] .agent-backdrop { background: rgba(40,40,70,0.3); }
   .proofcard.show { animation: none; }
   .agent-line { animation: none; opacity: 1; }
 }
+
+/* =====================================================================
+   v7: authentic company marks
+   Real logos, inlined, drawn in currentColor so one set works in both
+   themes. Brand colors are deliberately not used: Samsung navy and Penn
+   blue disappear on the dark background, and a row of competing brand
+   colors would fight the purple and teal the rest of the page uses.
+   Widths are fixed per mark because an inline SVG with width:auto
+   resolves to 100 percent rather than to its aspect ratio.
+   ===================================================================== */
+.brand-logo {
+  display: inline-flex; align-items: center; gap: 9px; flex: none;
+  color: var(--text-dim);
+  transition: color 0.3s var(--ease), transform 0.3s var(--ease);
+}
+.brand-logo svg { display: block; }
+.brand-logo svg path, .brand-logo svg polygon, .brand-logo svg use { fill: currentColor; }
+.brand-logo.has-name > span {
+  font-family: var(--font-display); font-weight: 600; font-size: 0.95rem;
+  letter-spacing: -0.01em; white-space: nowrap;
+}
+
+/* Credibility strip, sitting between the marquee and the bento */
+.logos { border-bottom: 1px solid var(--border); padding: 28px 0; }
+.logos-inner {
+  display: flex; align-items: center; justify-content: center;
+  gap: clamp(20px, 3.6vw, 46px); flex-wrap: wrap;
+}
+.logos-label {
+  font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.24em;
+  text-transform: uppercase; color: var(--text-faint); flex: none;
+}
+.logos .brand-logo:hover { color: var(--text); transform: translateY(-2px); }
+.logos .lg-postman  { width: 23px; height: 23px; }
+.logos .lg-ericsson { width: 17px; height: 23px; }
+.logos .lg-samsung  { width: 92px; height: 14px; }
+.logos .lg-fiserv   { width: 44px; height: 22px; }
+
+/* Marks inside the experience timeline */
+.tl-company { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.tl-company .brand-logo { color: var(--text); }
+.tl-company .sub { color: var(--text); font-weight: 500; }
+.tl-card:hover .tl-company .brand-logo { color: var(--accent); }
+.tl-company .lg-postman  { width: 19px; height: 19px; }
+.tl-company .lg-ericsson { width: 14px; height: 19px; }
+.tl-company .lg-samsung  { width: 74px; height: 11px; }
+.tl-company .lg-fiserv   { width: 36px; height: 18px; }
+
+@media (max-width: 620px) {
+  .logos { padding: 22px 0; }
+  .logos-inner { gap: 18px 22px; }
+  .logos-label { flex-basis: 100%; text-align: center; }
+}
