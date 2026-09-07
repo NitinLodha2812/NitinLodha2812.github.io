@@ -905,3 +905,70 @@ html[data-theme="light"] .agent-backdrop { background: rgba(40,40,70,0.3); }
 @media (max-width: 620px) {
   .hero-status { font-size: 0.72rem; padding: 7px 13px; letter-spacing: -0.01em; }
 }
+
+/* =====================================================================
+   v8: skill starmap
+   The toolbox as constellations. The chip grid below stays in the markup
+   as the accessible fallback and is hidden only once the canvas mounts.
+   ===================================================================== */
+.sm-fallback { display: none; }
+.starmap[hidden] { display: none; }
+
+.starmap {
+  position: relative;
+  height: clamp(560px, 80vh, 860px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(124, 108, 255, 0.09), transparent 60%),
+    linear-gradient(180deg, #07070c, #0a0a11);
+  box-shadow: var(--shadow);
+}
+html[data-theme="light"] .starmap {
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(97, 70, 240, 0.1), transparent 60%),
+    linear-gradient(180deg, #0b0b14, #10101a);
+}
+.starmap canvas { display: block; width: 100%; height: 100%; }
+
+.sm-legend {
+  position: absolute; left: 20px; bottom: 18px;
+  display: flex; flex-wrap: wrap; gap: 8px; max-width: calc(100% - 40px);
+}
+.sm-key {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 7px 13px; border-radius: 100px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(10, 10, 18, 0.6); backdrop-filter: blur(8px);
+  font-family: var(--font-mono); font-size: 0.74rem; color: rgba(236, 236, 243, 0.72);
+  transition: color 0.25s, border-color 0.25s, background 0.25s, transform 0.25s var(--ease);
+}
+.sm-key i { width: 8px; height: 8px; border-radius: 2px; background: var(--c); box-shadow: 0 0 10px var(--c); flex: none; transform: rotate(45deg); }
+.sm-key em { font-style: normal; font-size: 0.68rem; color: rgba(236, 236, 243, 0.4); }
+.sm-key:hover { color: #fff; border-color: rgba(255, 255, 255, 0.3); transform: translateY(-2px); }
+.sm-key.on { color: #fff; border-color: var(--c); background: color-mix(in srgb, var(--c) 22%, rgba(10, 10, 18, 0.6)); }
+.sm-key.on em { color: rgba(255, 255, 255, 0.7); }
+
+.sm-meta {
+  position: absolute; right: 22px; top: 18px;
+  font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: rgba(236, 236, 243, 0.32); pointer-events: none;
+}
+
+@media (max-width: 1100px) {
+  .starmap { height: clamp(520px, 74vh, 720px); }
+  .sm-legend { left: 14px; bottom: 14px; gap: 6px; }
+  .sm-key { padding: 6px 10px; font-size: 0.68rem; }
+  .sm-meta { right: 14px; top: 14px; font-size: 0.64rem; }
+}
+
+/* Forty eight labelled nodes need room. Below this the map cannot be read,
+   so the original chip grid comes back and carries the same content. */
+@media (max-width: 900px) {
+  .starmap { display: none; }
+  .sm-fallback { display: grid; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sm-key i { box-shadow: none; }
+}

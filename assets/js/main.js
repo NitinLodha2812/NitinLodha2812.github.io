@@ -561,6 +561,373 @@
     });
   })();
 
+
+  /* =====================================================================
+     Skill starmap
+     The toolbox drawn as a set of constellations: one cluster per family,
+     hexagonal nodes sized by how many things they touch, and faint lines
+     with light travelling along them. The chip grid stays in the DOM as
+     the accessible fallback and is only hidden once this mounts.
+     ===================================================================== */
+  (function starmap() {
+    var wrap = document.getElementById("starmap");
+    var cnv = document.getElementById("starmapCanvas");
+    if (!wrap || !cnv || !cnv.getContext) return;
+    var ctx = cnv.getContext("2d");
+    if (!ctx) return;
+
+    var CLUSTERS = [
+      { key: "agentic", name: "Agentic AI",         color: "#7c6cff" },
+      { key: "ml",      name: "Machine Learning",   color: "#18d3c6" },
+      { key: "lang",    name: "Languages",          color: "#c084fc" },
+      { key: "web",     name: "Web and Full Stack", color: "#35e0a8" },
+      { key: "cloud",   name: "Cloud and DevOps",   color: "#ff8a5c" }
+    ];
+
+    var SKILLS = [
+      ["Agentic AI","agentic"],["AI Agents","agentic"],["Multi-agent","agentic"],
+      ["LLM Orchestration","agentic"],["RAG","agentic"],["Vector Search","agentic"],
+      ["MCP","agentic"],["Prompt Eng.","agentic"],["LLM APIs","agentic"],
+      ["Gemini","agentic"],["Qdrant","agentic"],["LLM Evals","agentic"],
+
+      ["PyTorch","ml"],["TensorFlow","ml"],["Diffusion","ml"],["Computer Vision","ml"],
+      ["NLP","ml"],["CNN","ml"],["RNN","ml"],["RL","ml"],["Scikit-learn","ml"],
+
+      ["Python","lang"],["TypeScript","lang"],["C / C++","lang"],["Java","lang"],
+      ["JavaScript","lang"],["R","lang"],["SQL","lang"],["Shell","lang"],
+
+      ["React","web"],["Node.js","web"],["FastAPI","web"],["Flask","web"],
+      ["Streamlit","web"],["REST APIs","web"],["Microservices","web"],
+      ["System Design","web"],["MongoDB","web"],["Firebase","web"],
+
+      ["AWS","cloud"],["Docker","cloud"],["Kubernetes","cloud"],["Jenkins","cloud"],
+      ["CI / CD","cloud"],["Git","cloud"],["Linux","cloud"],["Observability","cloud"],
+      ["Distributed Sys.","cloud"]
+    ];
+
+    // Pairs that actually show up together in the work.
+    var LINKS = [
+      ["Agentic AI","AI Agents"],["AI Agents","Multi-agent"],["AI Agents","LLM Orchestration"],
+      ["LLM Orchestration","LLM APIs"],["RAG","Vector Search"],["Vector Search","Qdrant"],
+      ["RAG","LLM APIs"],["LLM APIs","Gemini"],["Agentic AI","LLM Evals"],
+      ["Agentic AI","MCP"],["Prompt Eng.","LLM APIs"],["Agentic AI","RAG"],
+
+      ["PyTorch","Computer Vision"],["PyTorch","Diffusion"],["Computer Vision","CNN"],
+      ["NLP","RNN"],["TensorFlow","CNN"],["Scikit-learn","RL"],["PyTorch","TensorFlow"],
+      ["NLP","LLM APIs"],
+
+      ["Python","PyTorch"],["Python","FastAPI"],["Python","Agentic AI"],
+      ["Python","Scikit-learn"],["Python","Flask"],["Python","Streamlit"],
+      ["TypeScript","JavaScript"],["TypeScript","React"],["TypeScript","MCP"],
+      ["JavaScript","Node.js"],["Java","Microservices"],["C / C++","Distributed Sys."],
+      ["SQL","MongoDB"],["R","Scikit-learn"],["Shell","Linux"],
+
+      ["React","Node.js"],["Node.js","REST APIs"],["FastAPI","REST APIs"],
+      ["Microservices","REST APIs"],["Microservices","Docker"],
+      ["System Design","Distributed Sys."],["MongoDB","REST APIs"],["Firebase","React"],
+      ["Flask","REST APIs"],
+
+      ["Docker","Kubernetes"],["Kubernetes","AWS"],["CI / CD","Jenkins"],
+      ["Git","CI / CD"],["Linux","Docker"],["Observability","Distributed Sys."],
+      ["Docker","FastAPI"],["AWS","Distributed Sys."]
+    ];
+
+    /* ---------- graph ---------- */
+    var nodes = SKILLS.map(function (s, i) {
+      return { i: i, name: s[0], cluster: s[1], links: [], deg: 0, x: 0, y: 0, ux: 0, uy: 0 };
+    });
+    var byName = {}; nodes.forEach(function (n) { byName[n.name] = n; });
+    var cl = {}; CLUSTERS.forEach(function (c) {
+      cl[c.key] = c; c.nodes = nodes.filter(function (n) { return n.cluster === c.key; });
+    });
+    var edges = [], seen = {};
+    LINKS.forEach(function (p) {
+      var a = byName[p[0]], b = byName[p[1]];
+      if (!a || !b || a === b) return;
+      var k = a.i < b.i ? a.i + ":" + b.i : b.i + ":" + a.i;
+      if (seen[k]) return; seen[k] = 1;
+      edges.push({ a: a, b: b, cross: a.cluster !== b.cluster, off: (edges.length * 0.137) % 1 });
+      a.links.push(b); b.links.push(a); a.deg++; b.deg++;
+    });
+
+    function nodeR(n) { return (7 + Math.min(n.deg, 7) * 1.5) * nodeScale; }
+
+    /* ---------- deterministic scatter, then relax ---------- */
+    var seed = 20260907;
+    function rnd() { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; }
+
+    function buildLayout(W, H) {
+      seed = 20260907;
+      // Reserve the strips the overlay actually occupies so nothing lands
+      // under the legend or the counter.
+      var padL = 26, padR = 26, padT = 44, padB = 74;
+      var iw = W - padL - padR, ih = H - padT - padB;
+      var cx = padL + iw / 2, cy = padT + ih / 2;
+
+      CLUSTERS.forEach(function (c, ci) {
+        var a = (ci / CLUSTERS.length) * Math.PI * 2 - Math.PI / 2.1;
+        c.x = cx + Math.cos(a) * iw * 0.34;
+        c.y = cy + Math.sin(a) * ih * 0.34;
+        c.nodes.forEach(function (n) {
+          var ang = rnd() * Math.PI * 2, rad = (0.3 + rnd() * 0.7) * Math.min(iw, ih) * 0.2;
+          n.x = c.x + Math.cos(ang) * rad;
+          n.y = c.y + Math.sin(ang) * rad * 0.75;
+        });
+      });
+
+      // Every node reserves the box its hexagon and its label actually
+      // occupy. Separating those boxes, rather than treating nodes as
+      // points, is what stops the labels piling on top of each other.
+      nodeScale = Math.max(0.8, Math.min(1.05, Math.min(iw / 1180, ih / 620)));
+      ctx.font = '500 10px "JetBrains Mono", monospace';
+      if ("letterSpacing" in ctx) ctx.letterSpacing = "1.2px";
+      nodes.forEach(function (n) {
+        var lw = ctx.measureText(n.name.toUpperCase()).width;
+        n.hw = Math.max(nodeR(n) + 6, lw / 2) + 9;
+        n.hh = nodeR(n) + 24;
+      });
+      if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
+
+      for (var it = 0; it < 320; it++) {
+        var k = 0.5;
+        for (var i = 0; i < nodes.length; i++) {
+          var n = nodes[i];
+          for (var j = i + 1; j < nodes.length; j++) {
+            var m = nodes[j];
+            var dx = m.x - n.x, dy = m.y - n.y;
+            var ox = (n.hw + m.hw) - Math.abs(dx);
+            var oy = (n.hh + m.hh) - Math.abs(dy);
+            if (ox <= 0 || oy <= 0) continue;           // boxes clear
+            // resolve along whichever axis needs the smaller move
+            if (ox / (n.hw + m.hw) < oy / (n.hh + m.hh)) {
+              var sx = (dx < 0 ? -1 : 1) * ox * k;
+              n.x -= sx / 2; m.x += sx / 2;
+            } else {
+              var sy = (dy < 0 ? -1 : 1) * oy * k;
+              n.y -= sy / 2; m.y += sy / 2;
+            }
+          }
+          var c = cl[n.cluster];
+          n.x += (c.x - n.x) * 0.02;
+          n.y += (c.y - n.y) * 0.02;
+        }
+        edges.forEach(function (e) {
+          if (e.cross) return;
+          var dx = e.b.x - e.a.x, dy = e.b.y - e.a.y;
+          e.a.x += dx * 0.004; e.a.y += dy * 0.004;
+          e.b.x -= dx * 0.004; e.b.y -= dy * 0.004;
+        });
+      }
+
+      // Fit the whole field, label boxes included, into the safe area.
+      var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      nodes.forEach(function (n) {
+        if (n.x - n.hw < minX) minX = n.x - n.hw;
+        if (n.x + n.hw > maxX) maxX = n.x + n.hw;
+        if (n.y - n.hh < minY) minY = n.y - n.hh;
+        if (n.y + n.hh > maxY) maxY = n.y + n.hh;
+      });
+      var f = Math.min(iw / (maxX - minX), ih / (maxY - minY), 1);
+      var ox2 = padL + (iw - (maxX - minX) * f) / 2 - minX * f;
+      var oy2 = padT + (ih - (maxY - minY) * f) / 2 - minY * f;
+      nodes.forEach(function (n) { n.x = ox2 + n.x * f; n.y = oy2 + n.y * f; });
+
+      // Second pass, in final coordinates. The fit above scales positions
+      // but not the labels, so gaps opened before the fit close again. This
+      // settles the boxes at the size they are actually drawn, clamped to
+      // the safe area so nothing escapes instead of separating.
+      var loX = padL, hiX = W - padR, loY = padT, hiY = H - padB;
+      for (var it2 = 0; it2 < 260; it2++) {
+        for (var a2 = 0; a2 < nodes.length; a2++) {
+          var p = nodes[a2];
+          for (var b2 = a2 + 1; b2 < nodes.length; b2++) {
+            var q = nodes[b2];
+            var ddx = q.x - p.x, ddy = q.y - p.y;
+            var oX = (p.hw + q.hw) - Math.abs(ddx);
+            var oY = (p.hh + q.hh) - Math.abs(ddy);
+            if (oX <= 0 || oY <= 0) continue;
+            if (oX / (p.hw + q.hw) < oY / (p.hh + q.hh)) {
+              var mx = (ddx < 0 ? -1 : 1) * oX * 0.5;
+              p.x -= mx / 2; q.x += mx / 2;
+            } else {
+              var my = (ddy < 0 ? -1 : 1) * oY * 0.5;
+              p.y -= my / 2; q.y += my / 2;
+            }
+          }
+          p.x = Math.max(loX + p.hw, Math.min(hiX - p.hw, p.x));
+          p.y = Math.max(loY + p.hh, Math.min(hiY - p.hh, p.y));
+        }
+      }
+      nodes.forEach(function (n) { n.hx = n.x; n.hy = n.y; });
+
+      CLUSTERS.forEach(function (c) {
+        var sx = 0, sy = 0;
+        c.nodes.forEach(function (n) { sx += n.x; sy += n.y; });
+        c.x = sx / c.nodes.length; c.y = sy / c.nodes.length;
+      });
+    }
+
+    /* ---------- stars ---------- */
+    var stars = [];
+    function buildStars(W, H) {
+      stars = [];
+      var n = Math.round((W * H) / 9000);
+      for (var i = 0; i < n; i++) {
+        stars.push({ x: rnd() * W, y: rnd() * H, r: rnd() * 1.1 + 0.25, a: rnd() * 0.5 + 0.15, p: rnd() * 6.28 });
+      }
+    }
+
+    /* ---------- render ---------- */
+    var W = 0, H = 0, DPR = 1, nodeScale = 1, t = 0, running = false;
+    var hover = null, filter = null;
+
+    function size() {
+      var b = wrap.getBoundingClientRect();
+      W = Math.max(320, b.width); H = Math.max(300, b.height);
+      DPR = Math.min(window.devicePixelRatio || 1, 2);
+      cnv.width = W * DPR; cnv.height = H * DPR;
+      cnv.style.width = W + "px"; cnv.style.height = H + "px";
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      buildLayout(W, H); buildStars(W, H);
+    }
+
+
+    function hexPath(x, y, r) {
+      ctx.beginPath();
+      for (var i = 0; i < 6; i++) {
+        var a = i * Math.PI / 3;
+        var px = x + Math.cos(a) * r, py = y + Math.sin(a) * r;
+        if (i) ctx.lineTo(px, py); else ctx.moveTo(px, py);
+      }
+      ctx.closePath();
+    }
+
+    function dimOf(n) {
+      if (filter && n.cluster !== filter) return 0.12;
+      if (hover) return (n === hover || hover.links.indexOf(n) > -1) ? 1 : 0.22;
+      return 1;
+    }
+
+    function draw() {
+      if (!running) return;
+      t += 0.005;
+      ctx.clearRect(0, 0, W, H);
+
+      // stars
+      stars.forEach(function (s) {
+        ctx.globalAlpha = s.a * (0.65 + 0.35 * Math.sin(t * 2 + s.p));
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.2832); ctx.fill();
+      });
+
+      // cluster halos
+      CLUSTERS.forEach(function (c) {
+        var a = filter && filter !== c.key ? 0.04 : 0.13;
+        var rad = Math.min(W, H) * 0.34;
+        var g = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, rad);
+        g.addColorStop(0, c.color); g.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.globalAlpha = a;
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(c.x, c.y, rad, 0, 6.2832); ctx.fill();
+      });
+
+      // drift
+      nodes.forEach(function (n, i) {
+        n.x = n.hx + Math.sin(t * 0.9 + i) * 2.6;
+        n.y = n.hy + Math.cos(t * 0.7 + i * 1.3) * 2.6;
+      });
+
+      // edges plus the light travelling along them
+      edges.forEach(function (e) {
+        var d = Math.min(dimOf(e.a), dimOf(e.b));
+        var lit = hover && (e.a === hover || e.b === hover);
+        ctx.globalAlpha = (lit ? 0.75 : 0.16) * d;
+        ctx.strokeStyle = lit ? cl[hover.cluster].color : "#ffffff";
+        ctx.lineWidth = lit ? 1.2 : 0.6;
+        ctx.beginPath(); ctx.moveTo(e.a.x, e.a.y); ctx.lineTo(e.b.x, e.b.y); ctx.stroke();
+
+        var p = (t * 0.11 + e.off) % 1;
+        ctx.globalAlpha = (lit ? 0.95 : 0.5) * d;
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(e.a.x + (e.b.x - e.a.x) * p, e.a.y + (e.b.y - e.a.y) * p, lit ? 1.9 : 1.3, 0, 6.2832);
+        ctx.fill();
+      });
+
+      // nodes
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      nodes.forEach(function (n) {
+        var c = cl[n.cluster].color, d = dimOf(n), r = nodeR(n) * (n === hover ? 1.18 : 1);
+
+        ctx.globalAlpha = 0.5 * d;
+        var g = ctx.createRadialGradient(n.x, n.y, r * 0.6, n.x, n.y, r * 3.4);
+        g.addColorStop(0, c); g.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(n.x, n.y, r * 3.4, 0, 6.2832); ctx.fill();
+
+        ctx.globalAlpha = d;
+        hexPath(n.x, n.y, r); ctx.fillStyle = c; ctx.fill();
+        ctx.globalAlpha = 0.55 * d;
+        hexPath(n.x, n.y, r * 0.44); ctx.fillStyle = "#ffffff"; ctx.fill();
+
+        ctx.globalAlpha = (n === hover ? 1 : 0.78) * d;
+        ctx.fillStyle = n === hover ? "#ffffff" : "rgba(236,236,243,0.9)";
+        ctx.font = '500 10px "JetBrains Mono", monospace';
+        if ("letterSpacing" in ctx) ctx.letterSpacing = "1.2px";
+        ctx.fillText(n.name.toUpperCase(), n.x, n.y + r + 14);
+        if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
+      });
+
+      ctx.globalAlpha = 1;
+      requestAnimationFrame(draw);
+    }
+
+    /* ---------- interaction ---------- */
+    cnv.addEventListener("mousemove", function (e) {
+      var b = cnv.getBoundingClientRect(), px = e.clientX - b.left, py = e.clientY - b.top;
+      var best = null, bd = 26 * 26;
+      nodes.forEach(function (n) {
+        if (filter && n.cluster !== filter) return;
+        var dx = n.x - px, dy = n.y - py, d = dx * dx + dy * dy;
+        if (d < bd) { bd = d; best = n; }
+      });
+      if (best !== hover) { hover = best; cnv.style.cursor = best ? "crosshair" : "default"; }
+    });
+    cnv.addEventListener("mouseleave", function () { hover = null; });
+
+    /* ---------- legend + meta ---------- */
+    var legend = document.getElementById("smLegend");
+    CLUSTERS.forEach(function (c) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "sm-key";
+      b.style.setProperty("--c", c.color);
+      b.innerHTML = '<i></i>' + c.name + ' <em>' + c.nodes.length + '</em>';
+      b.addEventListener("click", function () {
+        filter = filter === c.key ? null : c.key;
+        [].forEach.call(legend.children, function (x) { x.classList.remove("on"); });
+        if (filter) b.classList.add("on");
+      });
+      legend.appendChild(b);
+    });
+    document.getElementById("smMeta").textContent =
+      CLUSTERS.length + " clusters / " + nodes.length + " technologies / " + edges.length + " links";
+
+    /* ---------- mount ---------- */
+    wrap.hidden = false;
+    var fb = document.getElementById("skillsFallback");
+    if (fb) fb.classList.add("sm-fallback");
+    size();
+    var rt;
+    window.addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(size, 180); });
+
+    function setRunning(on) { if (on === running) return; running = on; if (on) requestAnimationFrame(draw); }
+    if (reduceMotion) { running = true; draw(); running = false; }
+    else if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (en) { setRunning(en[0].isIntersecting); },
+        { rootMargin: "180px 0px" }).observe(wrap);
+    } else setRunning(true);
+  })();
+
   /* ---------- Particle constellation background ---------- */
   var canvas = document.getElementById("bgCanvas");
   if (canvas && canvas.getContext) {
