@@ -1,1158 +1,657 @@
-/* =====================================================================
-   Nitin Lodha - Portfolio interactions (v2)
-   Vanilla core with a guarded momentum scroll enhancement.
-   No em dashes anywhere in this project.
-   ===================================================================== */
+/* Nitin Lodha — portfolio interactions. No libraries.
+
+   The motion system is one idea: a pulse travels through a line of type and
+   each letter widens as it passes, using the width axis of Roboto Flex.
+   The hero name, section headings, menu links and the contact email all use
+   the same Wave object. Everything else is small and answers an action. */
 (function () {
   "use strict";
-  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var isTouch = window.matchMedia("(hover: none), (pointer: coarse)").matches;
-  var root = document.documentElement;
 
-  /* ---------- Theme ---------- */
-  var themeToggle = document.getElementById("themeToggle");
-  var metaTheme = document.querySelector('meta[name="theme-color"]');
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
-  function applyTheme(theme) {
-    root.setAttribute("data-theme", theme);
-    if (metaTheme) metaTheme.setAttribute("content", theme === "light" ? "#f4f4f8" : "#08080c");
-    try { localStorage.setItem("theme", theme); } catch (e) {}
-  }
-  var stored;
-  try { stored = localStorage.getItem("theme"); } catch (e) {}
-  if (!stored) stored = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
-  applyTheme(stored);
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function easeInOut(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+  function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
 
-  function toggleTheme(ev) {
-    var next = root.getAttribute("data-theme") === "light" ? "dark" : "light";
-    if (document.startViewTransition && !reduceMotion) {
-      var x = ev ? ev.clientX : window.innerWidth - 40;
-      var y = ev ? ev.clientY : 40;
-      var end = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
-      var t = document.startViewTransition(function () { applyTheme(next); });
-      t.ready.then(function () {
-        root.animate(
-          { clipPath: ["circle(0px at " + x + "px " + y + "px)", "circle(" + end + "px at " + x + "px " + y + "px)"] },
-          { duration: 620, easing: "cubic-bezier(0.22,1,0.36,1)", pseudoElement: "::view-transition-new(root)" }
-        );
+  /* ---------- Split text into word and letter spans ---------- */
+  function splitLetters(el) {
+    var text = el.textContent;
+    var letters = [];
+    el.textContent = "";
+    text.split(/(\s+)/).forEach(function (part) {
+      if (!part) return;
+      if (/^\s+$/.test(part)) { el.appendChild(document.createTextNode(" ")); return; }
+      var w = document.createElement("span");
+      w.className = "w";
+      Array.from(part).forEach(function (ch) {
+        var c = document.createElement("span");
+        c.className = "ch";
+        c.textContent = ch;
+        w.appendChild(c);
+        letters.push(c);
       });
-    } else {
-      applyTheme(next);
-    }
-    if (window.__recolorParticles) window.__recolorParticles();
-    if (window.__recolorWebgl) window.__recolorWebgl();
+      el.appendChild(w);
+    });
+    return letters;
   }
-  if (themeToggle) themeToggle.addEventListener("click", toggleTheme);
 
-  /* ---------- Nav: scrolled state, mobile menu, active link ---------- */
+  /* ---------- One shared animation loop ---------- */
+  var active = new Set();
+  var raf = 0;
+  function wake(a) {
+    active.add(a);
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  function tick(now) {
+    raf = 0;
+    active.forEach(function (a) { if (!a.step(now)) active.delete(a); });
+    if (active.size) raf = requestAnimationFrame(tick);
+  }
+
+  /* ---------- Wave ---------- */
+  function Wave(el, letters, opts) {
+    this.el = el;
+    this.letters = letters;
+    this.groups = [{ letters: letters, base: 100 }];
+    this.o = Object.assign({
+      amp: 50,          // peak change in width, in wdth units
+      wAmp: 150,        // peak change in weight
+      sigma: 0.07,      // pulse width, as a fraction of the line
+      frame: null,      // element whose box defines 0..1; defaults to the text extent
+      trace: null,      // svg path that draws the signal
+      dot: null,        // marker riding the peak
+      resetWhenIdle: false
+    }, opts || {});
+    this.baseWeight = 700;
+    this.pulses = [];
+    this.pointer = { p: 0.5, a: 0, tp: 0.5, ta: 0 };
+    this.squeeze = 0;
+    this.reveal = null;
+    this.revealPulse = null;
+  }
+
+  Wave.prototype.readBase = function () {
+    var cs = getComputedStyle(this.el);
+    this.baseWeight = parseFloat(cs.fontWeight) || 700;
+    var st = parseFloat(cs.fontStretch);
+    this.groups.forEach(function (g) { g.base = isNaN(st) ? 100 : st; });
+    this.calibrate();
+  };
+
+  // Measure how much each letter's width moves per unit of the width axis
+  // and per unit of weight, so a pulse can be paid for exactly by the other
+  // letters and the line never changes length.
+  Wave.prototype.calibrate = function () {
+    var bw = this.baseWeight;
+    var widths = function (L) { return L.map(function (c) { return c.getBoundingClientRect().width; }); };
+    this.groups.forEach(function (g) {
+      var L = g.letters;
+      var hi = Math.min(151, g.base + 20), lo = Math.max(25, g.base - 20);
+      L.forEach(function (c) { c.style.fontStretch = g.base + "%"; c.style.fontWeight = bw; });
+      var w0 = widths(L);
+      L.forEach(function (c) { c.style.fontStretch = hi + "%"; });
+      var wh = widths(L);
+      L.forEach(function (c) { c.style.fontStretch = lo + "%"; });
+      var wl = widths(L);
+      L.forEach(function (c) { c.style.fontStretch = g.base + "%"; c.style.fontWeight = bw + 150; });
+      var ww = widths(L);
+      L.forEach(function (c, i) {
+        c.style.fontWeight = bw;
+        c._a = Math.max(0.01, (wh[i] - wl[i]) / Math.max(1, hi - lo));
+        c._b = (ww[i] - w0[i]) / 150;
+      });
+      g.sumA = L.reduce(function (t, c) { return t + c._a; }, 0) || 1;
+    });
+  };
+
+  Wave.prototype.measure = function () {
+    var left, width;
+    if (this.o.frame) {
+      var fr = this.o.frame.getBoundingClientRect();
+      left = fr.left; width = fr.width;
+    } else {
+      var min = Infinity, max = -Infinity;
+      this.letters.forEach(function (c) {
+        var r = c.getBoundingClientRect();
+        if (r.left < min) min = r.left;
+        if (r.right > max) max = r.right;
+      });
+      left = min; width = Math.max(1, max - min);
+    }
+    this.letters.forEach(function (c) {
+      var r = c.getBoundingClientRect();
+      c._x = (r.left + r.width / 2 - left) / width;
+    });
+  };
+
+  Wave.prototype.signal = function (x) {
+    var k = 2 * this.o.sigma * this.o.sigma, s = 0, d, i, p;
+    for (i = 0; i < this.pulses.length; i++) {
+      p = this.pulses[i];
+      d = x - p.p;
+      s += p.a * Math.exp(-d * d / k);
+    }
+    p = this.pointer;
+    if (p.a > 0.001) { d = x - p.p; s += p.a * Math.exp(-d * d / k); }
+    return Math.min(s, 1.15);
+  };
+
+  Wave.prototype.apply = function () {
+    var self = this, o = this.o;
+    this.groups.forEach(function (g) {
+      var base = g.base - self.squeeze;
+      var dS = [], dW = [], extra = 0;
+      g.letters.forEach(function (c, i) {
+        var s = self.signal(c._x || 0);
+        dS[i] = Math.min(o.amp * s, 151 - base);
+        dW[i] = Math.min(o.wAmp * s, 1000 - self.baseWeight);
+        extra += (c._a || 0) * dS[i] + (c._b || 0) * dW[i];
+      });
+      // Widen and thicken the letters under the pulse, then take the extra
+      // width back evenly from every letter so the line keeps its length.
+      var comp = extra / (g.sumA || 1);
+      var write = function (shift) {
+        g.letters.forEach(function (c, i) {
+          var st = base + dS[i] - comp - shift;
+          var wt = self.baseWeight + dW[i];
+          if (self.reveal !== null) {
+            var t = clamp((self.reveal - (c._x - 0.07)) / 0.14, 0, 1);
+            st = lerp(25, st, easeOut(t));
+            c.style.opacity = clamp(t * 2.2, 0, 1).toFixed(3);
+          }
+          c.style.fontStretch = clamp(st, 25, 151).toFixed(2) + "%";
+          c.style.fontWeight = Math.round(clamp(wt, 100, 1000));
+        });
+      };
+      write(0);
+      // Weight and width do not add up linearly at the extremes, so for lines
+      // that must stay flush, measure once and hand back what is left over.
+      if (g.node && g.target && self.reveal === null && self.squeeze === 0 && extra > 0.5) {
+        var err = g.node.getBoundingClientRect().width - g.target;
+        if (Math.abs(err) > 0.5) write(err / (g.sumA || 1));
+      }
+    });
+    if (o.trace) this.drawTrace();
+  };
+
+  Wave.prototype.reset = function () {
+    this.letters.forEach(function (c) {
+      c.style.fontStretch = "";
+      c.style.fontWeight = "";
+      c.style.opacity = "";
+    });
+  };
+
+  Wave.prototype.drawTrace = function () {
+    var N = 180, d = "", peak = 0, peakX = 0;
+    var end = this.reveal === null ? 1 : clamp(this.reveal, 0, 1);
+    for (var i = 0; i <= N; i++) {
+      var x = (i / N) * end;
+      var s = this.signal(x);
+      if (s > peak) { peak = s; peakX = x; }
+      d += (i ? "L" : "M") + (x * 1000).toFixed(1) + " " + (72 - 60 * s).toFixed(2);
+    }
+    this.o.trace.setAttribute("d", d);
+    if (this.o.dot) {
+      var dot = this.o.dot;
+      dot.style.left = (peakX * 100).toFixed(2) + "%";
+      dot.style.top = (72 - 60 * peak).toFixed(2) + "%";
+      dot.style.opacity = peak > 0.12 ? "1" : "0";
+    }
+  };
+
+  Wave.prototype.sweep = function (opts) {
+    opts = opts || {};
+    var p = {
+      p0: opts.p0 != null ? opts.p0 : -0.15,
+      p1: opts.p1 != null ? opts.p1 : 1.15,
+      a: opts.a != null ? opts.a : 1,
+      dur: opts.dur || 1200,
+      start: performance.now() + (opts.delay || 0),
+      p: -1
+    };
+    p.p = p.p0;
+    this.pulses.push(p);
+    wake(this);
+    return p;
+  };
+
+  Wave.prototype.step = function (now) {
+    var q = this.pointer;
+    this.pulses = this.pulses.filter(function (p) {
+      var t = (now - p.start) / p.dur;
+      if (t >= 1) { p.done = true; return false; }
+      p.p = lerp(p.p0, p.p1, easeInOut(clamp(t, 0, 1)));
+      return true;
+    });
+    if (this.revealPulse) {
+      if (this.revealPulse.done) {
+        this.revealPulse = null;
+        this.reveal = null;
+        this.letters.forEach(function (c) { c.style.opacity = ""; });
+      } else {
+        this.reveal = this.revealPulse.p + 0.03;
+      }
+    }
+    q.p = lerp(q.p, q.tp, 0.16);
+    q.a = lerp(q.a, q.ta, 0.07);
+    var busy = this.pulses.length > 0 || this.revealPulse ||
+      Math.abs(q.a - q.ta) > 0.002 || (q.a > 0.002 && Math.abs(q.p - q.tp) > 0.0005);
+    if (!busy && q.ta === 0) q.a = 0;
+    this.apply();
+    if (!busy && this.o.resetWhenIdle && q.a === 0) this.reset();
+    return busy;
+  };
+
+  Wave.prototype.follow = function (clientX, strength) {
+    var r = this.el.getBoundingClientRect();
+    var q = this.pointer;
+    q.tp = (clientX - r.left) / r.width;
+    if (q.a < 0.02) q.p = q.tp;
+    q.ta = strength;
+    wake(this);
+  };
+  Wave.prototype.release = function () {
+    this.pointer.ta = 0;
+    wake(this);
+  };
+
+  /* ---------- Fit a line of type to its container ----------
+     Pick a size from the widest line at normal width, then set each line's
+     width axis so it fills the container exactly. On phones the rows stack
+     and each gets its own width, so both lines end flush. */
+  function fit(w, rows, fitEl, maxSize) {
+    var el = w.el;
+    var avail = el.clientWidth;
+    if (!avail) return;
+    var stacked = rows.length > 1 && getComputedStyle(rows[0]).display === "block";
+    var groups = stacked
+      ? rows.map(function (r) { return { letters: r._letters, node: r }; })
+      : [{ letters: w.letters, node: fitEl }];
+
+    w.letters.forEach(function (c) {
+      c.style.fontStretch = "100%";
+      c.style.fontWeight = w.baseWeight;
+      c.style.opacity = "";
+    });
+    el.style.fontSize = "100px";
+    var widest = 0;
+    groups.forEach(function (g) { widest = Math.max(widest, g.node.getBoundingClientRect().width); });
+    var size = Math.min(100 * avail / widest, maxSize());
+    el.style.fontSize = size.toFixed(2) + "px";
+
+    groups.forEach(function (g) {
+      var lo = 25, hi = 151;
+      for (var k = 0; k < 14; k++) {
+        var mid = (lo + hi) / 2;
+        g.letters.forEach(function (c) { c.style.fontStretch = mid + "%"; });
+        if (g.node.getBoundingClientRect().width > avail) hi = mid; else lo = mid;
+      }
+      g.base = lo;
+      g.letters.forEach(function (c) { c.style.fontStretch = lo + "%"; });
+      g.target = g.node.getBoundingClientRect().width;
+    });
+    w.groups = groups;
+    w.calibrate();
+  }
+
+  /* ---------- Hero ---------- */
+  var hero = document.getElementById("top");
+  var heroName = document.getElementById("heroName");
+  var heroWave = null, heroRows = [], heroFit = null;
+  if (heroName) {
+    heroRows = Array.from(heroName.querySelectorAll(".row"));
+    heroFit = heroName.querySelector(".fit");
+    var heroLetters = [];
+    heroRows.forEach(function (r) {
+      r._letters = splitLetters(r);
+      heroLetters = heroLetters.concat(r._letters);
+    });
+    heroWave = new Wave(heroName, heroLetters, {
+      amp: 64, wAmp: 190, sigma: 0.06,
+      frame: heroName,
+      trace: document.getElementById("tracePath"),
+      dot: document.getElementById("traceDot")
+    });
+    heroWave.baseWeight = 800;
+  }
+
+  /* ---------- Contact email ---------- */
+  var email = document.getElementById("email");
+  var emailWave = null, emailRows = [], emailFit = null;
+  if (email) {
+    emailRows = Array.from(email.querySelectorAll(".row"));
+    emailFit = email.querySelector(".fit");
+    var emailLetters = [];
+    emailRows.forEach(function (r) {
+      r._letters = splitLetters(r);
+      emailLetters = emailLetters.concat(r._letters);
+    });
+    emailWave = new Wave(email, emailLetters, { amp: 56, wAmp: 160, sigma: 0.05, frame: email });
+    emailWave.baseWeight = 760;
+  }
+
+  var lastW = 0, lastH = 0;
+  function layout() {
+    lastW = window.innerWidth; lastH = window.innerHeight;
+    if (heroWave) {
+      fit(heroWave, heroRows, heroFit, function () { return window.innerHeight * 0.3; });
+      heroWave.measure();
+      heroWave.apply();
+    }
+    if (emailWave) {
+      fit(emailWave, emailRows, emailFit, function () { return 150; });
+      emailWave.measure();
+      emailWave.apply();
+    }
+  }
+
+  function fontsReady() {
+    if (!document.fonts) return Promise.resolve();
+    var wait = Promise.all([
+      document.fonts.load('800 100px "Roboto Flex"'),
+      document.fonts.load('400 20px "Newsreader"')
+    ]).then(function () { return document.fonts.ready; });
+    return Promise.race([wait, new Promise(function (r) { setTimeout(r, 2500); })]);
+  }
+
+  fontsReady().then(function () {
+    layout();
+    if (heroWave && !reduce) {
+      heroWave.reveal = -0.2;
+      heroWave.apply();
+      heroName.classList.add("is-fit");
+      heroWave.revealPulse = heroWave.sweep({ p0: -0.1, p1: 1.12, dur: 1800, delay: 150 });
+    } else if (heroName) {
+      heroName.classList.add("is-fit");
+    }
+    if (hero) hero.classList.add("is-in");
+    onScroll();
+  });
+
+  // A late font swap changes every measurement, so lay out again.
+  if (document.fonts && document.fonts.addEventListener) {
+    document.fonts.addEventListener("loadingdone", function () {
+      if (heroName && heroName.classList.contains("is-fit") && !(heroWave && heroWave.revealPulse)) layout();
+    });
+  }
+
+  var resizeT = 0;
+  window.addEventListener("resize", function () {
+    clearTimeout(resizeT);
+    resizeT = setTimeout(function () {
+      // Mobile browsers resize the viewport as the address bar hides; only
+      // refit when the width changes or the height changes a lot.
+      if (window.innerWidth === lastW && Math.abs(window.innerHeight - lastH) < 140) return;
+      if (heroWave && heroWave.revealPulse) {
+        heroWave.revealPulse = null;
+        heroWave.reveal = null;
+      }
+      layout();
+      if (window.innerWidth > 760) closeMenu();
+    }, 140);
+  });
+
+  if (heroWave && !reduce) {
+    if (fine) {
+      hero.addEventListener("pointermove", function (e) {
+        if (heroWave.revealPulse) return;
+        var r = heroName.getBoundingClientRect();
+        var dy = Math.abs(e.clientY - (r.top + r.height / 2));
+        heroWave.follow(e.clientX, clamp(1.15 - dy / (window.innerHeight * 0.6), 0.3, 1));
+      });
+      hero.addEventListener("pointerleave", function () { heroWave.release(); });
+    }
+    // Tap or click the name to send a pulse through it.
+    heroName.parentElement.addEventListener("click", function () {
+      if (!heroWave.revealPulse) heroWave.sweep({ dur: 1300 });
+    });
+  }
+
+  if (emailWave && fine && !reduce) {
+    email.addEventListener("pointermove", function (e) { emailWave.follow(e.clientX, 1); });
+    email.addEventListener("pointerleave", function () { emailWave.release(); });
+  }
+
+  /* ---------- Section headings: one pulse when they arrive ---------- */
+  var headingWaves = [];
+  document.querySelectorAll(".wave").forEach(function (h) {
+    var text = h.textContent;
+    h.textContent = "";
+    var sr = document.createElement("span");
+    sr.className = "sr";
+    sr.textContent = text;
+    var vis = document.createElement("span");
+    vis.setAttribute("aria-hidden", "true");
+    vis.textContent = text;
+    h.appendChild(sr);
+    h.appendChild(vis);
+    var w = new Wave(h, splitLetters(vis), { amp: 46, wAmp: 160, sigma: 0.08, resetWhenIdle: true });
+    h._wave = w;
+    headingWaves.push(h);
+  });
+  if (!reduce && "IntersectionObserver" in window) {
+    var headIO = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        headIO.unobserve(en.target);
+        var w = en.target._wave;
+        w.readBase();
+        w.measure();
+        w.sweep({ dur: 1250, delay: 80 });
+      });
+    }, { threshold: 0.9, rootMargin: "0px 0px -8% 0px" });
+    headingWaves.forEach(function (h) { headIO.observe(h); });
+  }
+
+  /* ---------- Statement: words take ink as you read ---------- */
+  var ink = document.getElementById("ink");
+  var inkWords = [];
+  if (ink) {
+    var text = ink.textContent;
+    ink.textContent = "";
+    text.split(/(\s+)/).forEach(function (part) {
+      if (!part) return;
+      if (/^\s+$/.test(part)) { ink.appendChild(document.createTextNode(" ")); return; }
+      var s = document.createElement("span");
+      s.className = "word";
+      s.textContent = part;
+      ink.appendChild(s);
+      inkWords.push(s);
+    });
+    if (reduce) inkWords.forEach(function (s) { s.classList.add("on"); });
+  }
+  function updateInk() {
+    if (!ink || reduce) return;
+    var r = ink.getBoundingClientRect(), vh = window.innerHeight;
+    var progress = clamp((vh * 0.88 - r.top) / (vh * 0.3 + r.height), 0, 1);
+    var count = Math.round(progress * inkWords.length);
+    for (var i = 0; i < inkWords.length; i++) inkWords[i].classList.toggle("on", i < count);
+  }
+
+  /* ---------- Years chart ---------- */
+  var years = document.getElementById("years");
+  if (years) {
+    // Today's date as a fractional year; bars fade past it and the marker sits on it.
+    var d = new Date();
+    var nowY = d.getFullYear() + (d.getMonth() + d.getDate() / 31) / 12;
+    years.style.setProperty("--now", clamp(nowY, 2019, 2027.45).toFixed(3));
+  }
+
+  /* ---------- Charts draw in once they are on screen ---------- */
+  var charts = [years, document.getElementById("spark")].filter(Boolean);
+  if (reduce || !("IntersectionObserver" in window)) {
+    charts.forEach(function (c) { c.classList.add("is-in"); });
+  } else {
+    var chartIO = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) { en.target.classList.add("is-in"); chartIO.unobserve(en.target); }
+      });
+    }, { threshold: 0.35 });
+    charts.forEach(function (c) { chartIO.observe(c); });
+  }
+
+  /* ---------- Projects: expand a row ---------- */
+  document.querySelectorAll(".item-head").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var item = btn.closest(".item");
+      var open = !item.classList.contains("is-open");
+      item.classList.toggle("is-open", open);
+      btn.setAttribute("aria-expanded", String(open));
+    });
+  });
+
+  /* ---------- Portrait: a lens that shows the photo in colour ---------- */
+  var portrait = document.getElementById("portrait");
+  if (portrait) {
+    var place = function (e) {
+      var r = portrait.getBoundingClientRect();
+      portrait.style.setProperty("--x", (e.clientX - r.left).toFixed(1) + "px");
+      portrait.style.setProperty("--y", (e.clientY - r.top).toFixed(1) + "px");
+    };
+    if (fine) {
+      portrait.addEventListener("pointerenter", function (e) { place(e); portrait.classList.add("is-lens"); });
+      portrait.addEventListener("pointermove", place);
+      portrait.addEventListener("pointerleave", function () { portrait.classList.remove("is-lens"); });
+    } else {
+      portrait.addEventListener("click", function (e) {
+        place(e);
+        portrait.classList.toggle("is-full");
+      });
+    }
+  }
+
+  /* ---------- Copy email ---------- */
+  var copyBtn = document.getElementById("copyEmail");
+  var copyStatus = document.getElementById("copyStatus");
+  if (copyBtn) {
+    var addr = "nitinlodha2812@gmail.com";
+    var label = copyBtn.textContent;
+    var copyT = 0;
+    var done = function () {
+      copyBtn.textContent = "Copied";
+      copyBtn.classList.add("is-done");
+      if (copyStatus) copyStatus.textContent = "Email address copied";
+      if (emailWave && !reduce) emailWave.sweep({ dur: 1100 });
+      clearTimeout(copyT);
+      copyT = setTimeout(function () {
+        copyBtn.textContent = label;
+        copyBtn.classList.remove("is-done");
+        if (copyStatus) copyStatus.textContent = "";
+      }, 2200);
+    };
+    var fallback = function () {
+      var ta = document.createElement("textarea");
+      ta.value = addr;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch (err) { ok = false; }
+      ta.remove();
+      if (ok) done(); else copyBtn.textContent = addr;
+    };
+    copyBtn.addEventListener("click", function () {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(addr).then(done, fallback);
+      } else {
+        fallback();
+      }
+    });
+  }
+
+  /* ---------- Mobile menu ---------- */
   var nav = document.getElementById("nav");
-  var burger = document.getElementById("burger");
-  var mobileMenu = document.getElementById("mobileMenu");
-  var progress = document.getElementById("scrollProgress");
+  var menu = document.getElementById("menu");
+  var menuBtn = document.getElementById("menuBtn");
+  var menuWaves = [];
+  if (menu) {
+    menu.querySelectorAll(".menu-links a").forEach(function (a) {
+      var text = a.textContent;
+      a.setAttribute("aria-label", text);
+      var vis = document.createElement("span");
+      vis.setAttribute("aria-hidden", "true");
+      vis.textContent = text;
+      a.textContent = "";
+      a.appendChild(vis);
+      menuWaves.push(new Wave(a, splitLetters(vis), { amp: 60, wAmp: 160, sigma: 0.12, resetWhenIdle: true }));
+    });
+  }
+  function openMenu() {
+    menu.classList.add("is-open");
+    menu.removeAttribute("inert");
+    nav.classList.add("is-open");
+    menuBtn.setAttribute("aria-expanded", "true");
+    menuBtn.textContent = "Close";
+    document.body.style.overflow = "hidden";
+    if (!reduce) {
+      menuWaves.forEach(function (w, i) {
+        w.readBase();
+        w.measure();
+        w.sweep({ dur: 900, delay: 60 + i * 70 });
+      });
+    }
+  }
+  function closeMenu() {
+    if (!menu || !menu.classList.contains("is-open")) return;
+    menu.classList.remove("is-open");
+    menu.setAttribute("inert", "");
+    nav.classList.remove("is-open");
+    menuBtn.setAttribute("aria-expanded", "false");
+    menuBtn.textContent = "Menu";
+    document.body.style.overflow = "";
+  }
+  if (menuBtn) {
+    menuBtn.addEventListener("click", function () {
+      if (menu.classList.contains("is-open")) closeMenu(); else openMenu();
+    });
+    menu.querySelectorAll("a").forEach(function (a) { a.addEventListener("click", closeMenu); });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && menu.classList.contains("is-open")) { closeMenu(); menuBtn.focus(); }
+    });
+  }
+
+  /* ---------- Scroll: nav colour, current section, hero squeeze ---------- */
+  var toned = Array.from(document.querySelectorAll("main [data-tone]"));
+  var navLinks = Array.from(document.querySelectorAll(".nav-links a"));
+  var navTargets = navLinks.map(function (a) { return document.querySelector(a.getAttribute("href")); });
+  var lastSqueeze = -1;
 
   function onScroll() {
-    var y = window.scrollY || window.pageYOffset;
-    if (nav) nav.classList.toggle("scrolled", y > 40);
-    var h = document.documentElement.scrollHeight - window.innerHeight;
-    if (progress) progress.style.width = (h > 0 ? (y / h) * 100 : 0) + "%";
+    if (nav) {
+      var y = nav.offsetHeight / 2;
+      for (var i = 0; i < toned.length; i++) {
+        var r = toned[i].getBoundingClientRect();
+        if (r.top <= y && r.bottom > y) { nav.setAttribute("data-tone", toned[i].getAttribute("data-tone")); break; }
+      }
+      var mark = window.innerHeight * 0.35, current = -1;
+      navTargets.forEach(function (t, j) { if (t && t.getBoundingClientRect().top <= mark) current = j; });
+      navLinks.forEach(function (a, j) {
+        if (j === current) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current");
+      });
+    }
+    updateInk();
+    if (heroWave && !reduce && heroName.classList.contains("is-fit")) {
+      // The name condenses as the hero scrolls away.
+      var k = clamp(window.scrollY / (hero.offsetHeight * 0.85), 0, 1);
+      var sq = Math.round(k * 40 * 10) / 10;
+      if (sq !== lastSqueeze) {
+        lastSqueeze = sq;
+        heroWave.squeeze = sq;
+        if (!active.has(heroWave)) heroWave.apply();
+      }
+    }
   }
-  window.addEventListener("scroll", onScroll, { passive: true });
+
+  var scrollQueued = false;
+  window.addEventListener("scroll", function () {
+    if (scrollQueued) return;
+    scrollQueued = true;
+    requestAnimationFrame(function () { scrollQueued = false; onScroll(); });
+  }, { passive: true });
   onScroll();
-
-  function setMenu(open) {
-    if (!mobileMenu || !burger) return;
-    mobileMenu.classList.toggle("open", open);
-    burger.classList.toggle("open", open);
-    document.body.classList.toggle("no-scroll", open);
-    burger.setAttribute("aria-label", open ? "Close menu" : "Open menu");
-  }
-  if (burger) burger.addEventListener("click", function () { setMenu(!mobileMenu.classList.contains("open")); });
-  if (mobileMenu) {
-    Array.prototype.forEach.call(mobileMenu.querySelectorAll("a"), function (a) {
-      a.addEventListener("click", function () { setMenu(false); });
-    });
-  }
-
-  var navLinks = document.querySelectorAll("#navLinks a");
-  var sections = [];
-  navLinks.forEach(function (a) {
-    var id = a.getAttribute("href").slice(1);
-    var el = document.getElementById(id);
-    if (el) sections.push({ el: el, link: a });
-  });
-  if ("IntersectionObserver" in window && sections.length) {
-    var navObs = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (e.isIntersecting) {
-          navLinks.forEach(function (l) { l.classList.remove("active"); });
-          var match = sections.filter(function (s) { return s.el === e.target; })[0];
-          if (match) match.link.classList.add("active");
-        }
-      });
-    }, { rootMargin: "-45% 0px -50% 0px" });
-    sections.forEach(function (s) { navObs.observe(s.el); });
-  }
-
-  /* ---------- Split text setup ---------- */
-  function splitWords(el) {
-    var out = [], i = 0;
-    (function walk(node, grad) {
-      Array.prototype.forEach.call(node.childNodes, function (child) {
-        if (child.nodeType === 3) {
-          child.textContent.split(/(\s+)/).forEach(function (w) {
-            if (w === "") return;
-            if (w.trim() === "") { out.push(document.createTextNode(w)); return; }
-            var wrap = document.createElement("span"); wrap.className = "s-word";
-            var inner = document.createElement("span"); inner.className = "s-inner" + (grad ? " grad" : "");
-            inner.textContent = w; inner.style.setProperty("--d", (i * 0.05) + "s"); i++;
-            wrap.appendChild(inner); out.push(wrap);
-          });
-        } else if (child.nodeType === 1) {
-          walk(child, grad || (child.classList && child.classList.contains("grad")));
-        }
-      });
-    })(el, false);
-    el.innerHTML = ""; out.forEach(function (n) { el.appendChild(n); });
-    el.classList.add("split-ready");
-  }
-
-  function splitChars(el) {
-    var text = el.textContent, i = 0, passedSpace = false;
-    el.innerHTML = "";
-    text.split("").forEach(function (ch) {
-      var s = document.createElement("span");
-      if (ch === " ") { s.className = "s-char space"; s.innerHTML = "&nbsp;"; passedSpace = true; }
-      else { s.className = "s-char" + (passedSpace ? " g" : ""); s.textContent = ch; }
-      s.style.setProperty("--d", (i * 0.04) + "s"); i++;
-      el.appendChild(s);
-    });
-    el.classList.add("split-ready");
-  }
-
-  if (!reduceMotion) {
-    document.querySelectorAll(".split-words").forEach(splitWords);
-    document.querySelectorAll(".split-chars").forEach(splitChars);
-  }
-
-  /* ---------- Reveal on scroll (reveals + split words) ---------- */
-  var revealEls = document.querySelectorAll(".reveal, .reveal-scale, .split-words");
-  if ("IntersectionObserver" in window) {
-    var revObs = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (e.isIntersecting) { e.target.classList.add("in-view", "in"); revObs.unobserve(e.target); }
-      });
-    }, { threshold: 0.14, rootMargin: "0px 0px -8% 0px" });
-    revealEls.forEach(function (el) { revObs.observe(el); });
-    // Safety: force reveal after a few seconds in case something never intersects.
-    setTimeout(function () { revealEls.forEach(function (el) { el.classList.add("in-view", "in"); }); }, 4000);
-  } else {
-    revealEls.forEach(function (el) { el.classList.add("in-view", "in"); });
-  }
-
-  /* ---------- Count up stats ---------- */
-  var counters = document.querySelectorAll("[data-count]");
-  if ("IntersectionObserver" in window && !reduceMotion) {
-    var cObs = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (!e.isIntersecting) return;
-        var el = e.target;
-        var target = parseInt(el.getAttribute("data-count"), 10);
-        var suffix = el.getAttribute("data-suffix") || "";
-        var start = null, dur = 1400;
-        function step(ts) {
-          if (start === null) start = ts;
-          var p = Math.min((ts - start) / dur, 1);
-          var eased = 1 - Math.pow(1 - p, 3);
-          el.textContent = Math.round(eased * target) + suffix;
-          if (p < 1) requestAnimationFrame(step);
-        }
-        requestAnimationFrame(step);
-        cObs.unobserve(el);
-      });
-    }, { threshold: 0.6 });
-    counters.forEach(function (el) { cObs.observe(el); });
-  }
-
-  /* ---------- Typed role effect ---------- */
-  var typed = document.getElementById("typed");
-  if (typed) {
-    var words = ["AI agents.", "full stack products.", "ML systems.", "things people use.", "tools that ship."];
-    var wi = 0, ci = 0, deleting = false;
-    function tick() {
-      var word = words[wi];
-      if (reduceMotion) { typed.textContent = word; wi = (wi + 1) % words.length; setTimeout(tick, 2000); return; }
-      typed.textContent = word.slice(0, ci);
-      if (!deleting) {
-        if (ci < word.length) { ci++; setTimeout(tick, 70); }
-        else { deleting = true; setTimeout(tick, 1600); }
-      } else {
-        if (ci > 0) { ci--; setTimeout(tick, 34); }
-        else { deleting = false; wi = (wi + 1) % words.length; setTimeout(tick, 260); }
-      }
-    }
-    tick();
-  }
-
-  /* ---------- Custom cursor + spotlight + magnetic ---------- */
-  if (!isTouch && !reduceMotion) {
-    var dot = document.getElementById("cursorDot");
-    var ring = document.getElementById("cursorRing");
-    var spot = document.getElementById("spotlight");
-    var mx = window.innerWidth / 2, my = window.innerHeight / 2, rx = mx, ry = my;
-    if (dot) dot.style.opacity = "0";
-    if (ring) ring.style.opacity = "0";
-    var shown = false;
-    window.addEventListener("mousemove", function (e) {
-      if (!shown) { shown = true; if (dot) dot.style.opacity = "1"; if (ring) ring.style.opacity = "1"; if (spot) spot.style.opacity = "1"; }
-      mx = e.clientX; my = e.clientY;
-      if (dot) { dot.style.left = mx + "px"; dot.style.top = my + "px"; }
-      if (spot) { spot.style.left = mx + "px"; spot.style.top = my + "px"; }
-    });
-    (function ringLoop() {
-      rx += (mx - rx) * 0.18; ry += (my - ry) * 0.18;
-      if (ring) { ring.style.left = rx + "px"; ring.style.top = ry + "px"; }
-      requestAnimationFrame(ringLoop);
-    })();
-    document.querySelectorAll("a, button, [data-cursor], .skill-chip").forEach(function (el) {
-      el.addEventListener("mouseenter", function () { if (ring) ring.classList.add("hover"); });
-      el.addEventListener("mouseleave", function () { if (ring) ring.classList.remove("hover"); });
-    });
-    document.querySelectorAll("[data-magnetic]").forEach(function (el) {
-      el.addEventListener("mousemove", function (e) {
-        var r = el.getBoundingClientRect();
-        var dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
-        el.style.transform = "translate(" + dx * 0.25 + "px," + dy * 0.35 + "px)";
-      });
-      el.addEventListener("mouseleave", function () { el.style.transform = ""; });
-    });
-  }
-
-  /* ---------- Tilt on cards ---------- */
-  if (!isTouch && !reduceMotion) {
-    document.querySelectorAll("[data-tilt]").forEach(function (el) {
-      var max = 5;
-      el.style.transition = "transform 0.2s var(--ease)";
-      el.addEventListener("mousemove", function (e) {
-        var r = el.getBoundingClientRect();
-        var px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
-        el.style.transform = "perspective(900px) rotateX(" + (0.5 - py) * max + "deg) rotateY(" + (px - 0.5) * max + "deg) translateY(-4px)";
-      });
-      el.addEventListener("mouseleave", function () { el.style.transform = ""; });
-    });
-    document.querySelectorAll(".venture").forEach(function (el) {
-      el.addEventListener("mousemove", function (e) {
-        var r = el.getBoundingClientRect();
-        el.style.setProperty("--mx", (e.clientX - r.left) + "px");
-        el.style.setProperty("--my", (e.clientY - r.top) + "px");
-      });
-    });
-  }
-
-  /* ---------- 3D diorama: pointer parallax on hero layers ---------- */
-  if (!isTouch && !reduceMotion) {
-    var depthEls = document.querySelectorAll("[data-depth]");
-    var tmx = 0, tmy = 0, cmx = 0, cmy = 0, dRun = false;
-    function depthFrame() {
-      cmx += (tmx - cmx) * 0.10; cmy += (tmy - cmy) * 0.10;
-      depthEls.forEach(function (el) {
-        var d = parseFloat(el.getAttribute("data-depth")) || 0;
-        el.style.translate = (-cmx * d) + "px " + (-cmy * d) + "px";
-      });
-      if (Math.abs(tmx - cmx) > 0.0005 || Math.abs(tmy - cmy) > 0.0005) { requestAnimationFrame(depthFrame); }
-      else { dRun = false; }
-    }
-    window.addEventListener("mousemove", function (e) {
-      tmx = (e.clientX / window.innerWidth - 0.5);
-      tmy = (e.clientY / window.innerHeight - 0.5);
-      if (!dRun) { dRun = true; requestAnimationFrame(depthFrame); }
-    });
-  }
-
-  /* ---------- Fun facts: shuffler + question chips ---------- */
-  (function funStuff() {
-    var facts = [
-      "I have published 10+ peer reviewed papers.",
-      "My first research paper went out in 2021, while I was still an undergrad.",
-      "I built an agent that ranks candidates with an LLM and a Qdrant vector index.",
-      "I ported a MATLAB medical research tool into a full web app.",
-      "I can drop you into a movie scene using Stable Diffusion.",
-      "I am building Corda, which proves an AI workflow is ready before it runs the business.",
-      "I have shipped work at Postman, Ericsson, Samsung, and Fiserv.",
-      "I cut a team's feature turnaround time by 30 percent at Ericsson.",
-      "I move between Philadelphia and Cupertino.",
-      "I study Computer and Information Science at the University of Pennsylvania."
-    ];
-    var factText = document.getElementById("factText");
-    var factBtn = document.getElementById("factBtn");
-    var factCount = document.getElementById("factCount");
-    var idx = 0;
-    function pad(n) { return (n < 10 ? "0" : "") + n; }
-    if (factText && factBtn && factCount) {
-      factCount.textContent = pad(1) + " / " + pad(facts.length);
-      factBtn.addEventListener("click", function () {
-        var next = idx;
-        while (next === idx && facts.length > 1) { next = Math.floor((cryptoRand()) * facts.length); }
-        idx = next;
-        factText.classList.add("swap");
-        setTimeout(function () {
-          factText.textContent = facts[idx];
-          factCount.textContent = pad(idx + 1) + " / " + pad(facts.length);
-          factText.classList.remove("swap");
-        }, 260);
-      });
-    }
-    // avoid Math.random dependency issues by using a simple time-free pseudo shuffle
-    var seed = 0;
-    function cryptoRand() {
-      if (window.crypto && window.crypto.getRandomValues) {
-        var a = new Uint32Array(1); window.crypto.getRandomValues(a); return a[0] / 4294967296;
-      }
-      seed = (seed * 9301 + 49297) % 233280; return seed / 233280;
-    }
-    var answer = document.getElementById("funAnswer");
-    document.querySelectorAll(".fun-chip").forEach(function (chip) {
-      chip.addEventListener("click", function () {
-        document.querySelectorAll(".fun-chip").forEach(function (c) { c.classList.remove("active"); });
-        chip.classList.add("active");
-        if (!answer) return;
-        answer.classList.add("swap");
-        setTimeout(function () { answer.textContent = chip.getAttribute("data-fun"); answer.classList.remove("swap"); }, 200);
-      });
-    });
-  })();
-
-  /* ---------- Explore: expandable grid with FLIP morph panel ---------- */
-  (function explore() {
-    var ck = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
-    var EX = {
-      agents: {
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V4H8M2 14h2M20 14h2M9 13v2M15 13v2"/></svg>',
-        kicker: "The problem I keep coming back to", title: "AI Agents and Guardrails",
-        body: "I build autonomous agents and the systems that keep them honest. A recruiting copilot at Postman that ranks candidates with an LLM and a Qdrant vector index. An HR chatbot that answers Workday questions with read only tools. And Corda, my venture, which proves whether an AI workflow is ready to run a business process before it is handed real authority.",
-        points: ["Recruiter Agent: chat in, ranked shortlist out", "Corda: pilot to production for enterprise AI workflows", "Agents that ask a human when they should"],
-        tags: ["Agentic AI", "LLM", "Qdrant", "MCP"], links: [{ href: "https://cordaai.co/", label: "Visit Corda", primary: true }]
-      },
-      research: {
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
-        kicker: "Yes, I actually read the papers", title: "10+ Publications",
-        body: "More than a dozen peer reviewed papers across machine learning, computer vision, healthcare, quantum computing, security, and smart cities. My first went out in 2021 while I was still an undergrad, and my latest landed in 2025. A favorite line of work is context based image retrieval, where a hybrid pipeline lifted medical image retrieval accuracy by up to 28 percent.",
-        points: ["Venues across IEEE, AIP, and IGI", "Up to 28 percent gain on medical image retrieval", "From paddy leaf disease to smart city supply chains"],
-        tags: ["Computer Vision", "Healthcare AI", "Optimization"], links: [{ href: "https://scholar.google.com/citations?user=LnlYBn0AAAAJ&hl=en", label: "View on Google Scholar", primary: true }]
-      },
-      matlab: {
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>',
-        kicker: "A rewrite I am proud of", title: "From MATLAB to the browser",
-        body: "A cardiology lab had a MATLAB tool for studying cerebral blood flow in LVAD heart pump patients. I rebuilt it as a full Python and Flask web app. From raw signals sampled at 125 Hz it computes cerebral autoregulation, cerebrovascular reactivity, and per beat pulsatility, and it separates heart driven from pump driven beats. Results export straight to Excel and JSON.",
-        points: ["125 Hz signal processing in the browser", "Clinical metrics: CA, Mx, CVR, and PI", "No MATLAB license required"],
-        tags: ["Python", "Flask", "Signal Processing"], links: [{ href: "https://github.com/NitinLodha2812/Serial-LVAD", label: "See the code", primary: true }]
-      },
-      multimodal: {
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg>',
-        kicker: "I can put you in a movie", title: "Multimodal magic",
-        body: "For my computer vision course at Penn I built a pipeline that drops you into a cinematic scene. It captions your uploaded photo, writes a scene with an LLM, generates the frame with Stable Diffusion, and face swaps you into it, all behind a simple Gradio interface.",
-        points: ["Image to text to image, chained end to end", "Stable Diffusion for the frame, face swap for you", "Wrapped in a one click Gradio app"],
-        tags: ["Diffusers", "PyTorch", "Gradio"], links: [{ href: "https://github.com/NitinLodha2812/CIS5810-Cinematic", label: "See the code", primary: true }]
-      },
-      range: {
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>',
-        kicker: "Same curiosity, different altitude", title: "Low level to high level",
-        body: "I like the whole ladder of hard problems. Down low, an N-ary tree file system in C++ with OpenMP that made backups more than 100 percent faster through hashing and change detection. Up high, LLM agents, full stack products, and research. The fun is in moving between them.",
-        points: ["C++ and OpenMP for parallel, faster backups", "Distributed systems and observability from Ericsson and Fiserv", "Full stack from React to FastAPI to Flask"],
-        tags: ["C++", "OpenMP", "Systems"], links: [{ href: "https://github.com/NitinLodha2812/N-ary-tree-file-system", label: "See the code", primary: true }]
-      },
-      next: {
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>',
-        kicker: "Where I am headed", title: "What is next",
-        body: "I want to keep building AI agents that people can actually trust, ship Corda to teams trying to move AI pilots into production, and turn more research into products that hold up in the real world. If you are working on something hard in agents, full stack, or ML, I would love to talk.",
-        points: ["Trustworthy, auditable AI agents", "Research that becomes real products", "Always up for a hard problem"],
-        tags: ["Agents", "Guardrails", "Products"], links: [{ href: "https://cordaai.co/", label: "Visit Corda", primary: true }, { href: "#contact", label: "Get in touch" }]
-      }
-    };
-
-    var overlay = document.getElementById("exOverlay");
-    var panel = document.getElementById("exPanel");
-    var inner = document.getElementById("exPanelInner");
-    var closeBtn = document.getElementById("exClose");
-    var backdrop = document.getElementById("exBackdrop");
-    if (!overlay || !panel || !inner) return;
-    var activeTile = null, isOpen = false;
-
-    function detailHTML(d) {
-      var pts = (d.points || []).map(function (p) { return '<li>' + ck + '<span>' + p + '</span></li>'; }).join("");
-      var tags = (d.tags || []).map(function (t) { return '<span class="chip">' + t + '</span>'; }).join("");
-      var ctas = (d.links || []).map(function (l) {
-        var ext = l.href.charAt(0) === "#" ? "" : ' target="_blank" rel="noopener"';
-        var cls = l.primary ? "btn btn-primary" : "btn btn-ghost";
-        return '<a class="' + cls + ' exd-cta" href="' + l.href + '"' + ext + ' data-cursor>' + l.label + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>';
-      }).join("");
-      return '<div class="exd-head exd-anim"><span class="exd-ico">' + d.icon + '</span><div><span class="exd-kicker">' + d.kicker + '</span><h3 class="exd-title">' + d.title + '</h3></div></div>'
-        + '<p class="exd-body exd-anim">' + d.body + '</p>'
-        + (pts ? '<ul class="exd-points">' + pts + '</ul>' : '')
-        + (tags ? '<div class="exd-tags exd-anim">' + tags + '</div>' : '')
-        + (ctas ? '<div class="exd-ctas exd-anim">' + ctas + '</div>' : '');
-    }
-    function flip(from, reverse) {
-      var last = panel.getBoundingClientRect();
-      var dx = (from.left + from.width / 2) - (last.left + last.width / 2);
-      var dy = (from.top + from.height / 2) - (last.top + last.height / 2);
-      var sx = Math.max(from.width / last.width, 0.1), sy = Math.max(from.height / last.height, 0.1);
-      var a = { transform: "translate(" + dx + "px," + dy + "px) scale(" + sx + "," + sy + ")", opacity: 0.3, borderRadius: "20px" };
-      var b = { transform: "none", opacity: 1, borderRadius: "24px" };
-      return panel.animate(reverse ? [b, a] : [a, b], { duration: reverse ? 420 : 520, easing: reverse ? "cubic-bezier(0.5,0,0.75,0)" : "cubic-bezier(0.22,1,0.36,1)" });
-    }
-    function open(tile) {
-      var d = EX[tile.getAttribute("data-ex")]; if (!d) return;
-      activeTile = tile; inner.innerHTML = detailHTML(d);
-      overlay.classList.add("open"); overlay.setAttribute("aria-hidden", "false");
-      document.body.classList.add("no-scroll"); if (window.__lenis) window.__lenis.stop();
-      panel.scrollTop = 0; isOpen = true;
-      var anims = inner.querySelectorAll(".exd-anim, .exd-points li");
-      if (!reduceMotion && tile.getBoundingClientRect && panel.animate) {
-        panel.style.transform = "none";
-        flip(tile.getBoundingClientRect(), false);
-        anims.forEach(function (el, i) {
-          el.animate([{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 500, delay: 190 + i * 65, easing: "cubic-bezier(0.22,1,0.36,1)", fill: "backwards" });
-          el.style.opacity = "1"; el.style.transform = "none";
-        });
-      } else { anims.forEach(function (el) { el.style.opacity = "1"; el.style.transform = "none"; }); }
-      inner.querySelectorAll("a.exd-cta").forEach(function (link) {
-        link.addEventListener("click", function (e) {
-          var href = link.getAttribute("href");
-          if (href && href.charAt(0) === "#") {
-            e.preventDefault();
-            close(function () {
-              var target = document.querySelector(href); if (!target) return;
-              if (window.__lenis) window.__lenis.scrollTo(target, { offset: -70 });
-              else window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - 70, behavior: reduceMotion ? "auto" : "smooth" });
-            });
-          } else { close(); }
-        });
-      });
-      if (closeBtn) closeBtn.focus();
-    }
-    function close(cb) {
-      if (!isOpen) { if (typeof cb === "function") cb(); return; }
-      var done = function () {
-        overlay.classList.remove("open"); overlay.setAttribute("aria-hidden", "true");
-        document.body.classList.remove("no-scroll"); if (window.__lenis) window.__lenis.start();
-        isOpen = false; var t = activeTile; activeTile = null;
-        if (t && t.focus && typeof cb !== "function") t.focus();
-        if (typeof cb === "function") cb();
-      };
-      if (!reduceMotion && activeTile && panel.animate) {
-        var a = flip(activeTile.getBoundingClientRect(), true);
-        overlay.classList.remove("open");
-        a.onfinish = done; a.oncancel = done;
-      } else { done(); }
-    }
-    document.querySelectorAll(".ex-tile").forEach(function (tile) { tile.addEventListener("click", function () { open(tile); }); });
-    if (closeBtn) closeBtn.addEventListener("click", close);
-    if (backdrop) backdrop.addEventListener("click", close);
-    document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
-  })();
-
-  /* ---------- Surprise: run my AI agent, get a ProofCard verdict ---------- */
-  (function agentSurprise() {
-    var fab = document.getElementById("agentFab");
-    var overlay = document.getElementById("agentOverlay");
-    var backdrop = document.getElementById("agentBackdrop");
-    var closeBtn = document.getElementById("agentClose");
-    var linesEl = document.getElementById("agentLines");
-    var consoleEl = document.getElementById("agentConsole");
-    var proofcard = document.getElementById("proofcard");
-    var againBtn = document.getElementById("agentAgain");
-    var hireBtn = document.getElementById("agentHire");
-    var confetti = document.getElementById("confetti");
-    if (!fab || !overlay || !consoleEl || !proofcard) return;
-
-    function rnd() { if (window.crypto && crypto.getRandomValues) { var a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] / 4294967296; } return 0.5; }
-    function pick(a) { return a[Math.floor(rnd() * a.length)]; }
-    function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(rnd() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
-
-    var VERDICTS = ["Verdict: HIRE", "Verdict: STRONG HIRE", "Verdict: SHIP HIM", "Verdict: HIRE. TWICE.", "Verdict: OFFER SENT"];
-    var TRAITS = ["Ships agents end to end", "12 published papers", "Curious to a fault", "Turns research into products", "Builds guardrails, not just agents", "Low level to LLM, full range", "Moves fast, breaks nothing", "Reads the papers, then writes them", "Shipped at Postman, Ericsson, Samsung", "A relentless late night builder"];
-    var NOTES = ["My agent is biased, but it is not wrong.", "Ran the numbers. The numbers say hire.", "Even the guardrails approved this one.", "Sourced the whole database. Found one Nitin.", "Deterministic rules and the LLM agree.", "Scored in the top percentile of one."];
-
-    var timers = [], running = false;
-    function clearTimers() { timers.forEach(clearTimeout); timers = []; }
-
-    function typeLines(lines, done) {
-      linesEl.innerHTML = ""; var i = 0, delay = reduceMotion ? 30 : 620;
-      (function next() {
-        if (i >= lines.length) { if (done) timers.push(setTimeout(done, reduceMotion ? 30 : 520)); return; }
-        var d = document.createElement("div"); d.className = "agent-line"; d.innerHTML = lines[i]; linesEl.appendChild(d);
-        i++; timers.push(setTimeout(next, delay));
-      })();
-    }
-    function run() {
-      clearTimers();
-      consoleEl.classList.remove("hide"); proofcard.classList.remove("show");
-      var score = 90 + Math.floor(rnd() * 10);
-      typeLines([
-        "> booting <b>nitin.agent</b> ...",
-        "> sourcing the candidate ... <span class='ok'>done</span>",
-        "> screening 12 papers, 4 companies, 3 ventures ... <span class='ok'>done</span>",
-        "> scoring against the role ... <b>" + score + "/100</b>",
-        "> writing the ProofCard <span class='cursor'>_</span>"
-      ], function () { reveal(score); });
-    }
-    function reveal(score) {
-      document.getElementById("pcVerdict").textContent = pick(VERDICTS);
-      document.getElementById("pcNote").textContent = '"' + pick(NOTES) + '"';
-      document.getElementById("pcTraits").innerHTML = shuffle(TRAITS).slice(0, 4).map(function (t) {
-        return '<li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>' + t + '</li>';
-      }).join("");
-      var num = document.getElementById("pcScoreNum"), ring = document.getElementById("pcRing");
-      var circ = 2 * Math.PI * 52; if (ring) { ring.style.strokeDasharray = circ; ring.style.strokeDashoffset = circ; }
-      if (num) num.textContent = "0";
-      consoleEl.classList.add("hide"); proofcard.classList.add("show");
-      if (window.__agentBurst) window.__agentBurst();
-      confettiBurst();
-      if (reduceMotion) { if (num) num.textContent = score; if (ring) ring.style.strokeDashoffset = circ * (1 - score / 100); return; }
-      var start = null;
-      (function step(ts) {
-        if (start === null) start = ts; var p = Math.min((ts - start) / 1100, 1), e = 1 - Math.pow(1 - p, 3);
-        if (num) num.textContent = Math.round(e * score);
-        if (ring) ring.style.strokeDashoffset = circ * (1 - e * score / 100);
-        if (p < 1) requestAnimationFrame(step);
-      })(0);
-    }
-    function confettiBurst() {
-      if (!confetti || reduceMotion || !confetti.getContext) return;
-      var ctx = confetti.getContext("2d");
-      var W = confetti.width = window.innerWidth, H = confetti.height = window.innerHeight;
-      var colors = ["#8b7bff", "#7c6cff", "#18d3c6", "#35e0a8", "#c084fc"], parts = [];
-      for (var i = 0; i < 150; i++) parts.push({ x: W / 2 + (rnd() - 0.5) * 220, y: H / 2, vx: (rnd() - 0.5) * 17, vy: (rnd() - 1) * 15 - 4, g: 0.34 + rnd() * 0.22, r: 3 + rnd() * 4, c: colors[Math.floor(rnd() * colors.length)], rot: rnd() * 6, vr: (rnd() - 0.5) * 0.4, life: 0 });
-      var max = 150;
-      (function frame() {
-        ctx.clearRect(0, 0, W, H); var alive = false;
-        for (var i = 0; i < parts.length; i++) {
-          var p = parts[i]; p.life++; if (p.life > max) continue; alive = true;
-          p.vy += p.g; p.x += p.vx; p.y += p.vy; p.vx *= 0.99; p.rot += p.vr;
-          ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.globalAlpha = Math.max(0, 1 - p.life / max);
-          ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * 1.6); ctx.restore();
-        }
-        if (alive) requestAnimationFrame(frame); else ctx.clearRect(0, 0, W, H);
-      })();
-    }
-    function open() {
-      overlay.classList.add("open"); overlay.setAttribute("aria-hidden", "false");
-      document.body.classList.add("no-scroll"); if (window.__lenis) window.__lenis.stop();
-      if (closeBtn) closeBtn.focus(); run();
-    }
-    function close() {
-      clearTimers();
-      overlay.classList.remove("open"); overlay.setAttribute("aria-hidden", "true");
-      document.body.classList.remove("no-scroll"); if (window.__lenis) window.__lenis.start();
-      if (fab && fab.focus) fab.focus();
-    }
-    fab.addEventListener("click", open);
-    if (closeBtn) closeBtn.addEventListener("click", close);
-    if (backdrop) backdrop.addEventListener("click", close);
-    if (againBtn) againBtn.addEventListener("click", run);
-    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && overlay.classList.contains("open")) close(); });
-    if (hireBtn) hireBtn.addEventListener("click", function (e) {
-      e.preventDefault(); close();
-      timers.push(setTimeout(function () {
-        var t = document.getElementById("contact"); if (!t) return;
-        if (window.__lenis) window.__lenis.scrollTo(t, { offset: -70 });
-        else window.scrollTo({ top: t.getBoundingClientRect().top + window.scrollY - 70, behavior: reduceMotion ? "auto" : "smooth" });
-      }, 120));
-    });
-  })();
-
-
-  /* =====================================================================
-     Skill starmap
-     The toolbox drawn as a set of constellations: one cluster per family,
-     hexagonal nodes sized by how many things they touch, and faint lines
-     with light travelling along them. The chip grid stays in the DOM as
-     the accessible fallback and is only hidden once this mounts.
-     ===================================================================== */
-  (function starmap() {
-    var wrap = document.getElementById("starmap");
-    var cnv = document.getElementById("starmapCanvas");
-    if (!wrap || !cnv || !cnv.getContext) return;
-    var ctx = cnv.getContext("2d");
-    if (!ctx) return;
-
-    var CLUSTERS = [
-      { key: "agentic", name: "Agentic AI",         color: "#7c6cff" },
-      { key: "ml",      name: "Machine Learning",   color: "#18d3c6" },
-      { key: "lang",    name: "Languages",          color: "#c084fc" },
-      { key: "web",     name: "Web and Full Stack", color: "#35e0a8" },
-      { key: "cloud",   name: "Cloud and DevOps",   color: "#ff8a5c" }
-    ];
-
-    var SKILLS = [
-      ["Agentic AI","agentic"],["AI Agents","agentic"],["Multi-agent","agentic"],
-      ["LLM Orchestration","agentic"],["RAG","agentic"],["Vector Search","agentic"],
-      ["MCP","agentic"],["Prompt Eng.","agentic"],["LLM APIs","agentic"],
-      ["Gemini","agentic"],["Qdrant","agentic"],["LLM Evals","agentic"],
-
-      ["PyTorch","ml"],["TensorFlow","ml"],["Diffusion","ml"],["Computer Vision","ml"],
-      ["NLP","ml"],["CNN","ml"],["RNN","ml"],["RL","ml"],["Scikit-learn","ml"],
-
-      ["Python","lang"],["TypeScript","lang"],["C / C++","lang"],["Java","lang"],
-      ["JavaScript","lang"],["R","lang"],["SQL","lang"],["Shell","lang"],
-
-      ["React","web"],["Node.js","web"],["FastAPI","web"],["Flask","web"],
-      ["Streamlit","web"],["REST APIs","web"],["Microservices","web"],
-      ["System Design","web"],["MongoDB","web"],["Firebase","web"],
-
-      ["AWS","cloud"],["Docker","cloud"],["Kubernetes","cloud"],["Jenkins","cloud"],
-      ["CI / CD","cloud"],["Git","cloud"],["Linux","cloud"],["Observability","cloud"],
-      ["Distributed Sys.","cloud"]
-    ];
-
-    // Pairs that actually show up together in the work.
-    var LINKS = [
-      ["Agentic AI","AI Agents"],["AI Agents","Multi-agent"],["AI Agents","LLM Orchestration"],
-      ["LLM Orchestration","LLM APIs"],["RAG","Vector Search"],["Vector Search","Qdrant"],
-      ["RAG","LLM APIs"],["LLM APIs","Gemini"],["Agentic AI","LLM Evals"],
-      ["Agentic AI","MCP"],["Prompt Eng.","LLM APIs"],["Agentic AI","RAG"],
-
-      ["PyTorch","Computer Vision"],["PyTorch","Diffusion"],["Computer Vision","CNN"],
-      ["NLP","RNN"],["TensorFlow","CNN"],["Scikit-learn","RL"],["PyTorch","TensorFlow"],
-      ["NLP","LLM APIs"],
-
-      ["Python","PyTorch"],["Python","FastAPI"],["Python","Agentic AI"],
-      ["Python","Scikit-learn"],["Python","Flask"],["Python","Streamlit"],
-      ["TypeScript","JavaScript"],["TypeScript","React"],["TypeScript","MCP"],
-      ["JavaScript","Node.js"],["Java","Microservices"],["C / C++","Distributed Sys."],
-      ["SQL","MongoDB"],["R","Scikit-learn"],["Shell","Linux"],
-
-      ["React","Node.js"],["Node.js","REST APIs"],["FastAPI","REST APIs"],
-      ["Microservices","REST APIs"],["Microservices","Docker"],
-      ["System Design","Distributed Sys."],["MongoDB","REST APIs"],["Firebase","React"],
-      ["Flask","REST APIs"],
-
-      ["Docker","Kubernetes"],["Kubernetes","AWS"],["CI / CD","Jenkins"],
-      ["Git","CI / CD"],["Linux","Docker"],["Observability","Distributed Sys."],
-      ["Docker","FastAPI"],["AWS","Distributed Sys."]
-    ];
-
-    /* ---------- graph ---------- */
-    var nodes = SKILLS.map(function (s, i) {
-      return { i: i, name: s[0], cluster: s[1], links: [], deg: 0, x: 0, y: 0, ux: 0, uy: 0 };
-    });
-    var byName = {}; nodes.forEach(function (n) { byName[n.name] = n; });
-    var cl = {}; CLUSTERS.forEach(function (c) {
-      cl[c.key] = c; c.nodes = nodes.filter(function (n) { return n.cluster === c.key; });
-    });
-    var edges = [], seen = {};
-    LINKS.forEach(function (p) {
-      var a = byName[p[0]], b = byName[p[1]];
-      if (!a || !b || a === b) return;
-      var k = a.i < b.i ? a.i + ":" + b.i : b.i + ":" + a.i;
-      if (seen[k]) return; seen[k] = 1;
-      edges.push({ a: a, b: b, cross: a.cluster !== b.cluster, off: (edges.length * 0.137) % 1 });
-      a.links.push(b); b.links.push(a); a.deg++; b.deg++;
-    });
-
-    function nodeR(n) { return (7 + Math.min(n.deg, 7) * 1.5) * nodeScale; }
-
-    /* ---------- deterministic scatter, then relax ---------- */
-    var seed = 20260907;
-    function rnd() { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; }
-
-    function buildLayout(W, H) {
-      seed = 20260907;
-      // Reserve the strips the overlay actually occupies so nothing lands
-      // under the legend or the counter.
-      var padL = 26, padR = 26, padT = 44, padB = 74;
-      var iw = W - padL - padR, ih = H - padT - padB;
-      var cx = padL + iw / 2, cy = padT + ih / 2;
-
-      CLUSTERS.forEach(function (c, ci) {
-        var a = (ci / CLUSTERS.length) * Math.PI * 2 - Math.PI / 2.1;
-        c.x = cx + Math.cos(a) * iw * 0.34;
-        c.y = cy + Math.sin(a) * ih * 0.34;
-        c.nodes.forEach(function (n) {
-          var ang = rnd() * Math.PI * 2, rad = (0.3 + rnd() * 0.7) * Math.min(iw, ih) * 0.2;
-          n.x = c.x + Math.cos(ang) * rad;
-          n.y = c.y + Math.sin(ang) * rad * 0.75;
-        });
-      });
-
-      // Every node reserves the box its hexagon and its label actually
-      // occupy. Separating those boxes, rather than treating nodes as
-      // points, is what stops the labels piling on top of each other.
-      nodeScale = Math.max(0.8, Math.min(1.05, Math.min(iw / 1180, ih / 620)));
-      ctx.font = '500 10px "JetBrains Mono", monospace';
-      if ("letterSpacing" in ctx) ctx.letterSpacing = "1.2px";
-      nodes.forEach(function (n) {
-        var lw = ctx.measureText(n.name.toUpperCase()).width;
-        n.hw = Math.max(nodeR(n) + 6, lw / 2) + 9;
-        n.hh = nodeR(n) + 24;
-      });
-      if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
-
-      for (var it = 0; it < 320; it++) {
-        var k = 0.5;
-        for (var i = 0; i < nodes.length; i++) {
-          var n = nodes[i];
-          for (var j = i + 1; j < nodes.length; j++) {
-            var m = nodes[j];
-            var dx = m.x - n.x, dy = m.y - n.y;
-            var ox = (n.hw + m.hw) - Math.abs(dx);
-            var oy = (n.hh + m.hh) - Math.abs(dy);
-            if (ox <= 0 || oy <= 0) continue;           // boxes clear
-            // resolve along whichever axis needs the smaller move
-            if (ox / (n.hw + m.hw) < oy / (n.hh + m.hh)) {
-              var sx = (dx < 0 ? -1 : 1) * ox * k;
-              n.x -= sx / 2; m.x += sx / 2;
-            } else {
-              var sy = (dy < 0 ? -1 : 1) * oy * k;
-              n.y -= sy / 2; m.y += sy / 2;
-            }
-          }
-          var c = cl[n.cluster];
-          n.x += (c.x - n.x) * 0.02;
-          n.y += (c.y - n.y) * 0.02;
-        }
-        edges.forEach(function (e) {
-          if (e.cross) return;
-          var dx = e.b.x - e.a.x, dy = e.b.y - e.a.y;
-          e.a.x += dx * 0.004; e.a.y += dy * 0.004;
-          e.b.x -= dx * 0.004; e.b.y -= dy * 0.004;
-        });
-      }
-
-      // Fit the whole field, label boxes included, into the safe area.
-      var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-      nodes.forEach(function (n) {
-        if (n.x - n.hw < minX) minX = n.x - n.hw;
-        if (n.x + n.hw > maxX) maxX = n.x + n.hw;
-        if (n.y - n.hh < minY) minY = n.y - n.hh;
-        if (n.y + n.hh > maxY) maxY = n.y + n.hh;
-      });
-      var f = Math.min(iw / (maxX - minX), ih / (maxY - minY), 1);
-      var ox2 = padL + (iw - (maxX - minX) * f) / 2 - minX * f;
-      var oy2 = padT + (ih - (maxY - minY) * f) / 2 - minY * f;
-      nodes.forEach(function (n) { n.x = ox2 + n.x * f; n.y = oy2 + n.y * f; });
-
-      // Second pass, in final coordinates. The fit above scales positions
-      // but not the labels, so gaps opened before the fit close again. This
-      // settles the boxes at the size they are actually drawn, clamped to
-      // the safe area so nothing escapes instead of separating.
-      var loX = padL, hiX = W - padR, loY = padT, hiY = H - padB;
-      for (var it2 = 0; it2 < 260; it2++) {
-        for (var a2 = 0; a2 < nodes.length; a2++) {
-          var p = nodes[a2];
-          for (var b2 = a2 + 1; b2 < nodes.length; b2++) {
-            var q = nodes[b2];
-            var ddx = q.x - p.x, ddy = q.y - p.y;
-            var oX = (p.hw + q.hw) - Math.abs(ddx);
-            var oY = (p.hh + q.hh) - Math.abs(ddy);
-            if (oX <= 0 || oY <= 0) continue;
-            if (oX / (p.hw + q.hw) < oY / (p.hh + q.hh)) {
-              var mx = (ddx < 0 ? -1 : 1) * oX * 0.5;
-              p.x -= mx / 2; q.x += mx / 2;
-            } else {
-              var my = (ddy < 0 ? -1 : 1) * oY * 0.5;
-              p.y -= my / 2; q.y += my / 2;
-            }
-          }
-          p.x = Math.max(loX + p.hw, Math.min(hiX - p.hw, p.x));
-          p.y = Math.max(loY + p.hh, Math.min(hiY - p.hh, p.y));
-        }
-      }
-      nodes.forEach(function (n) { n.hx = n.x; n.hy = n.y; });
-
-      CLUSTERS.forEach(function (c) {
-        var sx = 0, sy = 0;
-        c.nodes.forEach(function (n) { sx += n.x; sy += n.y; });
-        c.x = sx / c.nodes.length; c.y = sy / c.nodes.length;
-      });
-    }
-
-    /* ---------- stars ---------- */
-    var stars = [];
-    function buildStars(W, H) {
-      stars = [];
-      var n = Math.round((W * H) / 9000);
-      for (var i = 0; i < n; i++) {
-        stars.push({ x: rnd() * W, y: rnd() * H, r: rnd() * 1.1 + 0.25, a: rnd() * 0.5 + 0.15, p: rnd() * 6.28 });
-      }
-    }
-
-    /* ---------- render ---------- */
-    var W = 0, H = 0, DPR = 1, nodeScale = 1, t = 0, running = false;
-    var hover = null, filter = null;
-
-    function size() {
-      var b = wrap.getBoundingClientRect();
-      W = Math.max(320, b.width); H = Math.max(300, b.height);
-      DPR = Math.min(window.devicePixelRatio || 1, 2);
-      cnv.width = W * DPR; cnv.height = H * DPR;
-      cnv.style.width = W + "px"; cnv.style.height = H + "px";
-      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-      buildLayout(W, H); buildStars(W, H);
-    }
-
-
-    function hexPath(x, y, r) {
-      ctx.beginPath();
-      for (var i = 0; i < 6; i++) {
-        var a = i * Math.PI / 3;
-        var px = x + Math.cos(a) * r, py = y + Math.sin(a) * r;
-        if (i) ctx.lineTo(px, py); else ctx.moveTo(px, py);
-      }
-      ctx.closePath();
-    }
-
-    function dimOf(n) {
-      if (filter && n.cluster !== filter) return 0.12;
-      if (hover) return (n === hover || hover.links.indexOf(n) > -1) ? 1 : 0.22;
-      return 1;
-    }
-
-    function draw() {
-      if (!running) return;
-      t += 0.005;
-      ctx.clearRect(0, 0, W, H);
-
-      // stars
-      stars.forEach(function (s) {
-        ctx.globalAlpha = s.a * (0.65 + 0.35 * Math.sin(t * 2 + s.p));
-        ctx.fillStyle = "#ffffff";
-        ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.2832); ctx.fill();
-      });
-
-      // cluster halos
-      CLUSTERS.forEach(function (c) {
-        var a = filter && filter !== c.key ? 0.04 : 0.13;
-        var rad = Math.min(W, H) * 0.34;
-        var g = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, rad);
-        g.addColorStop(0, c.color); g.addColorStop(1, "rgba(0,0,0,0)");
-        ctx.globalAlpha = a;
-        ctx.fillStyle = g;
-        ctx.beginPath(); ctx.arc(c.x, c.y, rad, 0, 6.2832); ctx.fill();
-      });
-
-      // drift
-      nodes.forEach(function (n, i) {
-        n.x = n.hx + Math.sin(t * 0.9 + i) * 2.6;
-        n.y = n.hy + Math.cos(t * 0.7 + i * 1.3) * 2.6;
-      });
-
-      // edges plus the light travelling along them
-      edges.forEach(function (e) {
-        var d = Math.min(dimOf(e.a), dimOf(e.b));
-        var lit = hover && (e.a === hover || e.b === hover);
-        ctx.globalAlpha = (lit ? 0.75 : 0.16) * d;
-        ctx.strokeStyle = lit ? cl[hover.cluster].color : "#ffffff";
-        ctx.lineWidth = lit ? 1.2 : 0.6;
-        ctx.beginPath(); ctx.moveTo(e.a.x, e.a.y); ctx.lineTo(e.b.x, e.b.y); ctx.stroke();
-
-        var p = (t * 0.11 + e.off) % 1;
-        ctx.globalAlpha = (lit ? 0.95 : 0.5) * d;
-        ctx.fillStyle = "#ffffff";
-        ctx.beginPath();
-        ctx.arc(e.a.x + (e.b.x - e.a.x) * p, e.a.y + (e.b.y - e.a.y) * p, lit ? 1.9 : 1.3, 0, 6.2832);
-        ctx.fill();
-      });
-
-      // nodes
-      ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      nodes.forEach(function (n) {
-        var c = cl[n.cluster].color, d = dimOf(n), r = nodeR(n) * (n === hover ? 1.18 : 1);
-
-        ctx.globalAlpha = 0.5 * d;
-        var g = ctx.createRadialGradient(n.x, n.y, r * 0.6, n.x, n.y, r * 3.4);
-        g.addColorStop(0, c); g.addColorStop(1, "rgba(0,0,0,0)");
-        ctx.fillStyle = g;
-        ctx.beginPath(); ctx.arc(n.x, n.y, r * 3.4, 0, 6.2832); ctx.fill();
-
-        ctx.globalAlpha = d;
-        hexPath(n.x, n.y, r); ctx.fillStyle = c; ctx.fill();
-        ctx.globalAlpha = 0.55 * d;
-        hexPath(n.x, n.y, r * 0.44); ctx.fillStyle = "#ffffff"; ctx.fill();
-
-        ctx.globalAlpha = (n === hover ? 1 : 0.78) * d;
-        ctx.fillStyle = n === hover ? "#ffffff" : "rgba(236,236,243,0.9)";
-        ctx.font = '500 10px "JetBrains Mono", monospace';
-        if ("letterSpacing" in ctx) ctx.letterSpacing = "1.2px";
-        ctx.fillText(n.name.toUpperCase(), n.x, n.y + r + 14);
-        if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
-      });
-
-      ctx.globalAlpha = 1;
-      requestAnimationFrame(draw);
-    }
-
-    /* ---------- interaction ---------- */
-    cnv.addEventListener("mousemove", function (e) {
-      var b = cnv.getBoundingClientRect(), px = e.clientX - b.left, py = e.clientY - b.top;
-      var best = null, bd = 26 * 26;
-      nodes.forEach(function (n) {
-        if (filter && n.cluster !== filter) return;
-        var dx = n.x - px, dy = n.y - py, d = dx * dx + dy * dy;
-        if (d < bd) { bd = d; best = n; }
-      });
-      if (best !== hover) { hover = best; cnv.style.cursor = best ? "crosshair" : "default"; }
-    });
-    cnv.addEventListener("mouseleave", function () { hover = null; });
-
-    /* ---------- legend + meta ---------- */
-    var legend = document.getElementById("smLegend");
-    CLUSTERS.forEach(function (c) {
-      var b = document.createElement("button");
-      b.type = "button"; b.className = "sm-key";
-      b.style.setProperty("--c", c.color);
-      b.innerHTML = '<i></i>' + c.name + ' <em>' + c.nodes.length + '</em>';
-      b.addEventListener("click", function () {
-        filter = filter === c.key ? null : c.key;
-        [].forEach.call(legend.children, function (x) { x.classList.remove("on"); });
-        if (filter) b.classList.add("on");
-      });
-      legend.appendChild(b);
-    });
-    document.getElementById("smMeta").textContent =
-      CLUSTERS.length + " clusters / " + nodes.length + " technologies / " + edges.length + " links";
-
-    /* ---------- mount ---------- */
-    wrap.hidden = false;
-    var fb = document.getElementById("skillsFallback");
-    if (fb) fb.classList.add("sm-fallback");
-    size();
-    var rt;
-    window.addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(size, 180); });
-
-    function setRunning(on) { if (on === running) return; running = on; if (on) requestAnimationFrame(draw); }
-    if (reduceMotion) { running = true; draw(); running = false; }
-    else if ("IntersectionObserver" in window) {
-      new IntersectionObserver(function (en) { setRunning(en[0].isIntersecting); },
-        { rootMargin: "180px 0px" }).observe(wrap);
-    } else setRunning(true);
-  })();
-
-  /* ---------- Particle constellation background ---------- */
-  var canvas = document.getElementById("bgCanvas");
-  if (canvas && canvas.getContext) {
-    var ctx = canvas.getContext("2d");
-    var particles = [], W, H, DPR = Math.min(window.devicePixelRatio || 1, 2);
-    var color = "150,138,255", line = "124,108,255";
-    function readColors() {
-      var isLight = root.getAttribute("data-theme") === "light";
-      color = isLight ? "97,70,240" : "150,138,255";
-      line = isLight ? "97,70,240" : "124,108,255";
-    }
-    window.__recolorParticles = readColors; readColors();
-    function resize() {
-      W = window.innerWidth; H = window.innerHeight;
-      canvas.style.width = W + "px"; canvas.style.height = H + "px";
-      canvas.width = W * DPR; canvas.height = H * DPR;
-      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-      var count = Math.min(Math.floor((W * H) / 16000), 90);
-      particles = [];
-      for (var i = 0; i < count; i++) {
-        particles.push({ x: Math.random() * W, y: Math.random() * H, vx: (Math.random() - 0.5) * 0.35, vy: (Math.random() - 0.5) * 0.35, r: Math.random() * 1.6 + 0.6 });
-      }
-    }
-    var mouse = { x: -999, y: -999 };
-    window.addEventListener("mousemove", function (e) { mouse.x = e.clientX; mouse.y = e.clientY; });
-    window.addEventListener("mouseout", function () { mouse.x = -999; mouse.y = -999; });
-    function draw() {
-      if (window.__webglOn) { ctx.clearRect(0, 0, W, H); return; }
-      ctx.clearRect(0, 0, W, H);
-      for (var i = 0; i < particles.length; i++) {
-        var p = particles[i];
-        p.x += p.vx; p.y += p.vy;
-        if (p.x < 0 || p.x > W) p.vx *= -1;
-        if (p.y < 0 || p.y > H) p.vy *= -1;
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(" + color + ",0.55)"; ctx.fill();
-        for (var j = i + 1; j < particles.length; j++) {
-          var q = particles[j], dx = p.x - q.x, dy = p.y - q.y, d = dx * dx + dy * dy;
-          if (d < 15000) {
-            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y);
-            ctx.strokeStyle = "rgba(" + line + "," + (0.14 * (1 - d / 15000)) + ")"; ctx.lineWidth = 1; ctx.stroke();
-          }
-        }
-        var mdx = p.x - mouse.x, mdy = p.y - mouse.y, md = mdx * mdx + mdy * mdy;
-        if (md < 26000) {
-          ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(mouse.x, mouse.y);
-          ctx.strokeStyle = "rgba(" + line + "," + (0.22 * (1 - md / 26000)) + ")"; ctx.lineWidth = 1; ctx.stroke();
-        }
-      }
-      requestAnimationFrame(draw);
-    }
-    resize(); window.addEventListener("resize", resize);
-    if (!reduceMotion) draw();
-    else { for (var k = 0; k < particles.length; k++) { var pp = particles[k]; ctx.beginPath(); ctx.arc(pp.x, pp.y, pp.r, 0, Math.PI * 2); ctx.fillStyle = "rgba(" + color + ",0.4)"; ctx.fill(); } }
-  }
-
-  /* ---------- Smooth anchor scroll (uses Lenis when present) ---------- */
-  document.querySelectorAll('a[href^="#"]').forEach(function (a) {
-    a.addEventListener("click", function (e) {
-      var id = a.getAttribute("href");
-      if (id === "#" || id.length < 2) return;
-      var target = document.querySelector(id);
-      if (!target) return;
-      e.preventDefault();
-      if (window.__lenis) { window.__lenis.scrollTo(target, { offset: -70 }); return; }
-      var top = target.getBoundingClientRect().top + window.scrollY - 70;
-      window.scrollTo({ top: top, behavior: reduceMotion ? "auto" : "smooth" });
-    });
-  });
-
-  /* ---------- Momentum scroll (Lenis, guarded progressive enhancement) ---------- */
-  function initLenis() {
-    if (reduceMotion || isTouch) return;
-    var s = document.createElement("script");
-    s.src = "https://unpkg.com/lenis@1.1.14/dist/lenis.min.js";
-    s.onload = function () {
-      if (!window.Lenis) return;
-      try {
-        var lenis = new window.Lenis({ duration: 1.05, smoothWheel: true, wheelMultiplier: 1, touchMultiplier: 1.5 });
-        window.__lenis = lenis;
-        (function raf(t) { lenis.raf(t); requestAnimationFrame(raf); })(0);
-      } catch (e) {}
-    };
-    s.onerror = function () {};
-    document.head.appendChild(s);
-  }
-
-  /* ---------- 3D interactive object (Three.js, guarded enhancement) ---------- */
-  function initWebGL() {
-    if (reduceMotion) return; // 2D constellation stays as the reduced-motion background; 3D runs on mobile too
-    var cnv = document.getElementById("webglCanvas");
-    if (!cnv) return;
-    var s = document.createElement("script");
-    s.src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
-    s.onload = function () { if (window.THREE) { try { buildScene(cnv); } catch (e) {} } };
-    s.onerror = function () {};
-    document.head.appendChild(s);
-  }
-  function buildScene(cnv) {
-    var THREE = window.THREE;
-    var mobile = isTouch || window.innerWidth < 760;
-    var renderer = new THREE.WebGLRenderer({ canvas: cnv, alpha: true, antialias: !mobile, powerPreference: "high-performance" });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, mobile ? 1.5 : 2));
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 240);
-    camera.position.set(0, 0, 18);
-
-    function themeColors() {
-      var light = root.getAttribute("data-theme") === "light";
-      return {
-        core: light ? 0x6146f0 : 0x8b7bff, node: light ? 0x06b0a4 : 0x18d3c6,
-        star: light ? 0x7a6cff : 0xc3c4ff, grid: light ? 0x9aa0e6 : 0x4b40a6,
-        fog: light ? 0xf4f4f8 : 0x08080c
-      };
-    }
-    var tc = themeColors();
-    scene.fog = new THREE.FogExp2(tc.fog, 0.012);
-
-    // Calm starfield for a real universe feel (sparse, slow, depth via fog)
-    var STAR = mobile ? 400 : 1000, spread = 120;
-    var sgeo = new THREE.BufferGeometry(), sp = new Float32Array(STAR * 3);
-    for (var s = 0; s < STAR; s++) { sp[s * 3] = (Math.random() - 0.5) * spread; sp[s * 3 + 1] = (Math.random() - 0.5) * spread; sp[s * 3 + 2] = -115 + Math.random() * 127; }
-    sgeo.setAttribute("position", new THREE.BufferAttribute(sp, 3));
-    var smat = new THREE.PointsMaterial({ color: tc.star, size: mobile ? 2.2 : 1.8, transparent: true, opacity: 0.85, sizeAttenuation: false, fog: true });
-    var stars = new THREE.Points(sgeo, smat); scene.add(stars);
-
-    // Morphing core, offset right so it clears the headline text
-    var group = new THREE.Group(); scene.add(group); group.position.x = 4.6;
-    var geo = new THREE.IcosahedronGeometry(6.2, mobile ? 2 : 3);
-    var orig = geo.attributes.position.array.slice(0);
-    var mat = new THREE.MeshBasicMaterial({ color: tc.core, wireframe: true, transparent: true, opacity: 0.28 });
-    var mesh = new THREE.Mesh(geo, mat); group.add(mesh);
-    var pgeo = new THREE.BufferGeometry(); pgeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(orig), 3));
-    var pmat = new THREE.PointsMaterial({ color: tc.node, size: 0.12, transparent: true, opacity: 0.9 });
-    var points = new THREE.Points(pgeo, pmat); group.add(points);
-    var geo2 = new THREE.IcosahedronGeometry(3.2, 1);
-    var mat2 = new THREE.MeshBasicMaterial({ color: tc.node, wireframe: true, transparent: true, opacity: 0.16 });
-    var mesh2 = new THREE.Mesh(geo2, mat2); group.add(mesh2);
-
-    window.__recolorWebgl = function () {
-      var c = themeColors();
-      mat.color.setHex(c.core); pmat.color.setHex(c.node); mat2.color.setHex(c.node);
-      smat.color.setHex(c.star);
-      if (scene.fog) scene.fog.color.setHex(c.fog);
-    };
-
-    var mX = 0, mY = 0;
-    window.addEventListener("mousemove", function (e) { mX = e.clientX / window.innerWidth - 0.5; mY = e.clientY / window.innerHeight - 0.5; });
-    window.addEventListener("resize", function () {
-      camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-
-    // Drag to spin, desktop only so it never fights touch scrolling
-    var dvx = 0, dvy = 0, dragging = false, lastX = 0, lastY = 0;
-    if (!isTouch) {
-      var draggableTarget = function (t) { return !(t && t.closest && t.closest("a,button,input,textarea,[data-cursor],[data-tilt],.ex-tile,.fun-chip,.skill-chip,.pub")); };
-      window.addEventListener("pointerdown", function (e) {
-        if (e.button !== 0 || !draggableTarget(e.target)) return;
-        dragging = true; lastX = e.clientX; lastY = e.clientY; document.body.style.userSelect = "none";
-        var dh = document.getElementById("dragHint"); if (dh) dh.classList.add("hide");
-      });
-      window.addEventListener("pointermove", function (e) {
-        if (!dragging) return;
-        var dx = e.clientX - lastX, dy = e.clientY - lastY; lastX = e.clientX; lastY = e.clientY;
-        dvy = dx * 0.006; dvx = dy * 0.006; group.rotation.y += dvy; group.rotation.x += dvx;
-      });
-      window.addEventListener("pointerup", function () { if (dragging) { dragging = false; document.body.style.userSelect = ""; } });
-    }
-
-    var pos = geo.attributes.position, ppos = pgeo.attributes.position, sposArr = sgeo.attributes.position.array, t = 0, burst = 0;
-    window.__agentBurst = function () { burst = 1.1; };
-    function animate() {
-      t += 0.008;
-      for (var i = 0; i < orig.length; i += 3) {
-        var ox = orig[i], oy = orig[i + 1], oz = orig[i + 2];
-        var n = Math.sin(ox * 0.8 + t) * Math.cos(oy * 0.8 + t * 0.7) * Math.sin(oz * 0.8 + t * 0.5);
-        var f = 1 + n * (0.13 + burst * 0.65);
-        pos.array[i] = ox * f; pos.array[i + 1] = oy * f; pos.array[i + 2] = oz * f;
-        ppos.array[i] = ox * f; ppos.array[i + 1] = oy * f; ppos.array[i + 2] = oz * f;
-      }
-      pos.needsUpdate = true; ppos.needsUpdate = true;
-      if (!dragging) { group.rotation.y += 0.0016 + dvy; group.rotation.x += 0.0008 + dvx; dvy *= 0.94; dvx *= 0.94; }
-      mesh2.rotation.y -= 0.004; mesh2.rotation.x -= 0.0022;
-      group.rotation.y += burst * 0.05; group.scale.setScalar(1 + burst * 0.22); burst *= 0.93;
-      // stars drift very slowly for a calm, real universe feel
-      for (var j = 0; j < STAR; j++) { sposArr[j * 3 + 2] += 0.012; if (sposArr[j * 3 + 2] > 12) sposArr[j * 3 + 2] -= 127; }
-      sgeo.attributes.position.needsUpdate = true; stars.rotation.y += 0.00008;
-      camera.position.x += (mX * 5 - camera.position.x) * 0.04;
-      camera.position.y += (-mY * 5 - camera.position.y) * 0.04;
-      camera.lookAt(0, 0, 0);
-      group.position.y = (window.scrollY || 0) * 0.006;
-      renderer.render(scene, camera);
-      requestAnimationFrame(animate);
-    }
-    animate();
-    window.__webglOn = true;
-    root.classList.add("webgl-active");
-    cnv.classList.add("on");
-  }
-
-  /* ---------- Intro preloader ---------- */
-  function runIntro() {
-    var intro = document.getElementById("intro");
-    var heroTitle = document.querySelector(".hero-title");
-    initWebGL();
-    if (reduceMotion || !intro) {
-      if (heroTitle) heroTitle.classList.add("in");
-      if (intro) intro.style.display = "none";
-      initLenis();
-      return;
-    }
-    intro.style.animation = "none";
-    document.body.classList.add("no-scroll");
-    var bar = intro.querySelector(".intro-bar > span");
-    if (bar) { requestAnimationFrame(function () { bar.style.transition = "width 0.95s cubic-bezier(0.22,1,0.36,1)"; bar.style.width = "100%"; }); }
-    setTimeout(function () {
-      intro.classList.add("done");
-      document.body.classList.remove("no-scroll");
-      if (heroTitle) heroTitle.classList.add("in");
-      initLenis();
-      setTimeout(function () { intro.style.display = "none"; }, 950);
-    }, 1150);
-  }
-  if (document.readyState === "complete") runIntro();
-  else window.addEventListener("load", runIntro);
 })();
